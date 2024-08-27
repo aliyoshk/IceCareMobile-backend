@@ -12,6 +12,7 @@ namespace IceCareNigLtd.Api.Models
         public decimal DollarAmount { get; set; }
         public decimal TotalDollarAmount { get; set; }
         public decimal TotalNairaAmount { get; set; }
+        public decimal Balance { get; set; }
     }
 
     public class CustomersResponseDto

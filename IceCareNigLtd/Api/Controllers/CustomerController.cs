@@ -42,7 +42,8 @@ namespace IceCareNigLtd.Api.Controllers
                 { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
                 { nameof(customerDto.DollarAmount), customerDto.DollarAmount.ToString() },
                 { nameof(customerDto.DollarRate), customerDto.DollarRate.ToString() },
-                { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment}
+                { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
+                { nameof(customerDto.Balance), customerDto.Balance.ToString()}
             };
             foreach (var field in requiredFields)
             {
