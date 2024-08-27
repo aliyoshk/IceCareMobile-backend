@@ -23,6 +23,26 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<CustomerDto>> AddCustomerAsync(CustomerDto customerDto)
         {
+            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && (customerDto.Banks == null || !customerDto.Banks.Any()))
+            {
+                return new Response<CustomerDto>
+                {
+                    Success = false,
+                    Message = "M.O.P is Transfer, Banks information is required",
+                    Data = null
+                };
+            }
+
+            if (customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString() && (customerDto.Banks != null && customerDto.Banks.Any()))
+            {
+                return new Response<CustomerDto>
+                {
+                    Success = false,
+                    Message = "M.O.P is Cash, Banks information must be empty",
+                    Data = null
+                };
+            }
+
             // Calculate the total dollar amount available from all suppliers
             var totalSupplierDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
             // Check if the total supplier dollar amount is sufficient for the customer's dollar amount
@@ -51,11 +71,12 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = customerDto.DollarAmount,
                 TotalDollarAmount = totalDollarAmount,
                 TotalNairaAmount = totalNairaAmount,
+                Balance = customerDto.Balance,
                 Banks = customerDto.Banks.Select(b => new BankInfo
                 {
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList()
+                }).ToList() ?? new List<BankInfo>()
             };
 
             await _customerRepository.AddCustomerAsync(customer);
@@ -97,6 +118,7 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = c.DollarAmount,
                 TotalDollarAmount = c.TotalDollarAmount,
                 TotalNairaAmount = c.TotalNairaAmount,
+                Balance = c.Balance,
                 Banks = c.Banks.Select(b => new BankInfoDto
                 {
                     BankName = b.BankName.ToString(),
