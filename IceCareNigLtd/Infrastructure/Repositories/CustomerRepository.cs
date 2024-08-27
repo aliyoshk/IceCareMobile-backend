@@ -21,6 +21,11 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<Customer> GetCustomerByIdAsync(int id)
+        {
+            return await _context.Customers.FirstOrDefaultAsync(a => a.Id == id);
+        }
+
         public async Task<List<Customer>> GetCustomersAsync()
         {
             return await _context.Customers

@@ -58,20 +58,22 @@ namespace IceCareNigLtd.Core.Services
             await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
 
 
-            var totalDollarAmount = customerDto.DollarAmount;
+            var totalDollarAmount = customerDto.TotalDollarAmount;
             var totalNairaAmount = customerDto.TotalNairaAmount;
 
             var customer = new Customer
             {
                 Name = customerDto.Name,
                 PhoneNumber = customerDto.PhoneNumber,
-                Date = customerDto.Date,
+                Date = DateTime.UtcNow,
                 ModeOfPayment = Enum.Parse<ModeOfPayment>(customerDto.ModeOfPayment.ToString()),
                 DollarRate = customerDto.DollarRate,
                 DollarAmount = customerDto.DollarAmount,
                 TotalDollarAmount = totalDollarAmount,
                 TotalNairaAmount = totalNairaAmount,
                 Balance = customerDto.Balance,
+                PaymentCurrency = Enum.Parse<PaymentCurrency>(customerDto.PaymentCurrency.ToString()),
+                Channel = Channel.None,
                 Banks = customerDto.Banks.Select(b => new BankInfo
                 {
                     BankName = b.BankName,
@@ -90,7 +92,7 @@ namespace IceCareNigLtd.Core.Services
                     BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
                     Date = DateTime.UtcNow,
                     PersonType = PersonType.Customer,
-                    ExpenseType = ExpenseType.Credit,
+                    ExpenseType = CreditType.Credit,
                     Amount = bankInfo.AmountTransferred,
                 };
 
@@ -119,6 +121,7 @@ namespace IceCareNigLtd.Core.Services
                 TotalDollarAmount = c.TotalDollarAmount,
                 TotalNairaAmount = c.TotalNairaAmount,
                 Balance = c.Balance,
+                PaymentCurrency = c.PaymentCurrency.ToString(),
                 Banks = c.Banks.Select(b => new BankInfoDto
                 {
                     BankName = b.BankName.ToString(),

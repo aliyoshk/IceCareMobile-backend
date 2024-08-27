@@ -23,7 +23,7 @@ namespace IceCareNigLtd.Core.Services
                 BankName = Enum.Parse<BankName>(bankDto.BankName.ToString()),
                 Date = DateTime.Now,
                 PersonType = Enum.Parse<PersonType>(bankDto.PersonType.ToString()),
-                ExpenseType = Enum.Parse<ExpenseType>(bankDto.PersonType.ToString()),
+                ExpenseType = Enum.Parse<CreditType>(bankDto.PersonType.ToString()),
                 Amount = bankDto.Amount
             };
 

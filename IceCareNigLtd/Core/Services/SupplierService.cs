@@ -40,14 +40,14 @@ namespace IceCareNigLtd.Core.Services
                 };
             }
 
-            var totalDollarAmount = supplierDto.DollarAmount;
+            var totalDollarAmount = supplierDto.TotalDollarAmount;
             var totalNairaAmount = supplierDto.TotalNairaAmount;
 
             var supplier = new Supplier
             {
                 Name = supplierDto.Name,
                 PhoneNumber = supplierDto.PhoneNumber,
-                Date = supplierDto.Date,
+                Date = DateTime.UtcNow,
                 ModeOfPayment = Enum.Parse<ModeOfPayment>(supplierDto.ModeOfPayment.ToString()),
                 DollarRate = supplierDto.DollarRate,
                 DollarAmount = supplierDto.DollarAmount,
@@ -70,7 +70,7 @@ namespace IceCareNigLtd.Core.Services
                     BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
                     Date = DateTime.UtcNow,
                     PersonType = PersonType.Supplier,
-                    ExpenseType = ExpenseType.Debit,
+                    ExpenseType = CreditType.Debit,
                     Amount = bankInfo.AmountTransferred,
                 };
 

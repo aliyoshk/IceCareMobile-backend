@@ -3,6 +3,7 @@ using System;
 using IceCareNigLtd.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IceCareNigLtd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240827222335_TransferTableDefination")]
+    partial class TransferTableDefination
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -135,15 +137,8 @@ namespace IceCareNigLtd.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<decimal>("Balance")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
@@ -258,41 +253,6 @@ namespace IceCareNigLtd.Migrations
                     b.ToTable("Suppliers");
                 });
 
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.AccountPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CustomerAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("DollarAmount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("NairaAmount")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AccountPayments");
-                });
-
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.EvidenceOfTransfer", b =>
                 {
                     b.Property<int>("Id")
@@ -365,69 +325,11 @@ namespace IceCareNigLtd.Migrations
                     b.ToTable("Registrations");
                 });
 
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.ThirdPartyPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CustomerAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ThirdPartyPayments");
-                });
-
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.Transfer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CustomerAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
                         .IsRequired()

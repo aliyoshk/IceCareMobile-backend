@@ -7,6 +7,7 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
 	{
         Task AddCustomerAsync(Customer customer);
         Task<List<Customer>> GetCustomersAsync();
+        Task<Customer> GetCustomerByIdAsync(int id);
         Task<int> GetCustomersCountAsync();
         Task<decimal> GetTotalTransferredAmountAsync();
     }

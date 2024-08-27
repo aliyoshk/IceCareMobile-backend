@@ -16,6 +16,9 @@ namespace IceCareNigLtd.Core.Entities
         public decimal TotalDollarAmount { get; set; }
         public decimal TotalNairaAmount { get; set; }
         public decimal Balance { get; set; }
+        public string AccountNumber { get; set; }
+        public Channel Channel { get; set; }
+        public PaymentCurrency PaymentCurrency { get; set; }
     }
 
     public class CustomerBankInfo

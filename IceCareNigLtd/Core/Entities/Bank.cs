@@ -9,7 +9,7 @@ namespace IceCareNigLtd.Core.Entities
         public BankName BankName { get; set; }
         public DateTime Date { get; set; }
         public PersonType PersonType { get; set; } // Credit, Debit
-        public ExpenseType ExpenseType { get; set; }
+        public CreditType ExpenseType { get; set; }
         public decimal Amount { get; set; }
     }
 }

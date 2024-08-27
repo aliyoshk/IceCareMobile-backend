@@ -1,5 +1,6 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
@@ -203,24 +204,53 @@ namespace IceCareNigLtd.Core.Services
             };
         }
 
-        public async Task<Response<bool>> UpdateAccountsAsync(List<CompanyAccounts> accounts)
+        public async Task<Response<bool>> AddCompanyAccountAsyn(CompanyAccountsDto companyAccountsDto)
         {
-            var result = await _settingsRepository.UpdateAccountsAsync(accounts);
+           
+            var data = new CompanyAccounts
+            {
+                AccountName = companyAccountsDto.AccountName,
+                AccountNumber = companyAccountsDto.AccountNumber,
+                BankName = companyAccountsDto.BankName
+            };
+
+            await _settingsRepository.AddCompanyAccountAsync(data);
+
+            return new Response<bool> { Success = true, Message = "Account added successfully", Data = true };
+        }
+
+        public async Task<Response<bool>> DeleteAccountsAsync(int bankId)
+        {
+            var result = await _settingsRepository.DeleteAccountAsync(bankId);
             if (!result)
             {
                 return new Response<bool>
                 {
                     Success = false,
-                    Message = "Failed to update company accounts"
+                    Message = "Account record doesn't exist"
                 };
             }
 
             return new Response<bool>
             {
                 Success = true,
-                Message = "Accounts updated successfully",
+                Message = "Account Deleted successfully",
                 Data = true
             };
+        }
+
+        public async Task<Response<List<CompanyAccounts>>> GetCompanyAccountsAsync()
+        {
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync();
+            var data = accounts.Select(a => new CompanyAccounts
+            {
+                Id = a.Id,
+                AccountName = a.AccountName,
+                AccountNumber = a.AccountNumber,
+                BankName = a.BankName
+            }).ToList();
+
+            return new Response<List<CompanyAccounts>> { Success = true, Message = "Accounts retrieved successfully", Data = data };
         }
     }
 }

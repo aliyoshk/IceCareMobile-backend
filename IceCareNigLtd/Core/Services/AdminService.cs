@@ -157,7 +157,7 @@ namespace IceCareNigLtd.Core.Services
                     return new Response<string> { Success = false, Message = "Invalid action." };
             }
 
-            return new Response<string> { Success = true, Message = $"User {request.Action}d successfully." };
+            return new Response<string> { Success = true, Message = $"User {request.Action} successfully." };
         }
 
 

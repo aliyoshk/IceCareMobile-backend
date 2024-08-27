@@ -1,6 +1,7 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
+using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Interfaces.Users;
 using IceCareNigLtd.Core.Utils;
@@ -21,7 +22,39 @@ namespace IceCareNigLtd.Api.Controllers.Users
 		}
 
 
-        // User Registration Endpoint
+        [HttpPost]
+        [Route("Login")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            if (loginDto == null)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Login data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
+            var result = await _userService.LoginUserAsync(loginDto);
+
+            if (!result.Success)
+            {
+                return Unauthorized(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Login failed.",
+                    Errors = new List<string> { "Invalid credentials or user not approved." }
+                });
+            }
+
+            return Ok(result.Data);
+        }
+
+
         [HttpPost]
         [Route("Register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -106,40 +139,192 @@ namespace IceCareNigLtd.Api.Controllers.Users
         }
 
 
-
-
-
-        // User Login Endpoint
         [HttpPost]
-        [Route("Login")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("ResetPassword")]
+        public async Task<IActionResult> UpdatePhoneNumbers([FromBody] ResetPasswordRequest resetPasswordRequest)
         {
-            if (loginDto == null)
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(resetPasswordRequest.FullName), resetPasswordRequest.FullName },
+                { nameof(resetPasswordRequest.Email), resetPasswordRequest.Email },
+                { nameof(resetPasswordRequest.Phone), resetPasswordRequest.Phone },
+                { nameof(resetPasswordRequest.NewPassword), resetPasswordRequest.NewPassword },
+            };
+
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
+            var response = await _userService.ResetUserLoginAsync(resetPasswordRequest);
+            if (!response.Success)
             {
                 return BadRequest(new ErrorResponse
                 {
                     Success = false,
-                    Message = "Login data cannot be null.",
+                    Message = response.Message
+                });
+            }
+            return Ok(response.Data);
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("FundTransfer")]
+        public async Task<IActionResult> FundTransfer([FromBody] TransferRequest transferRequest)
+        {
+            if (string.IsNullOrEmpty(transferRequest.DollarAmount.ToString()))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Dollar amount cannot be empty.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+            if (!transferRequest.BankDetails.Any() || transferRequest.BankDetails == null)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Dollar amount cannot be empty.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+            if (string.IsNullOrEmpty(transferRequest.BankDetails[0].BankName.ToString()))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Bank Name cannot be empty.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+            if (string.IsNullOrEmpty(transferRequest.BankDetails[0].TransferredAmount.ToString()))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Transferred amount cannot be empty.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+            if (string.IsNullOrEmpty(transferRequest.TransferEvidence[0].Receipts.ToString()))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Receipt must be provided",
                     Errors = new List<string> { "Invalid input." }
                 });
             }
 
-            var result = await _userService.LoginUserAsync(loginDto);
-
-            if (!result.Success)
+            var response = await _userService.FundTransferAsync(transferRequest);
+            if (!response.Success)
             {
-                return Unauthorized(new ErrorResponse
+                return BadRequest(new ErrorResponse
                 {
                     Success = false,
-                    Message = "Login failed.",
-                    Errors = new List<string> { "Invalid credentials or user not approved." }
+                    Message = response.Message,
+                    Data = false
+                });
+            }
+            return Ok(response.Data);
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("AccountBalancePayment")]
+        public async Task<IActionResult> AccountPayment([FromBody] AccountPaymentRequest accountPaymentRequest)
+        {
+            if (string.IsNullOrEmpty(accountPaymentRequest.DollarAmount.ToString()))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Dollar amount cannot be empty.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+            if (string.IsNullOrEmpty(accountPaymentRequest.NairaAmount.ToString()))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Amount cannot be empty.",
+                    Errors = new List<string> { "Invalid input." }
                 });
             }
 
-            return Ok(result.Data);
+            var response = await _userService.AccountPaymentAsync(accountPaymentRequest);
+            if (!response.Success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Data = false
+                });
+            }
+            return Ok(response.Data);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("ThirdPartyPayment")]
+        public async Task<IActionResult> ThirdPartyPayment([FromBody] ThirdPartyPaymentRequest thirdPartyPaymentRequest)
+        {
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(thirdPartyPaymentRequest.AccountName), thirdPartyPaymentRequest.AccountName },
+                { nameof(thirdPartyPaymentRequest.AccountNumber), thirdPartyPaymentRequest.AccountNumber },
+                { nameof(thirdPartyPaymentRequest.BankName), thirdPartyPaymentRequest.BankName },
+                { nameof(thirdPartyPaymentRequest.Amount), thirdPartyPaymentRequest.Amount.ToString() },
+            };
+
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
+            var response = await _userService.ThirdPartyPaymentAsync(thirdPartyPaymentRequest);
+            if (!response.Success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Data = false
+                });
+            }
+            return Ok(response.Data);
         }
     }
 }

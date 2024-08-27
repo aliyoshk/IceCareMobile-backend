@@ -23,6 +23,11 @@ namespace IceCareNigLtd.Infrastructure.Data
 
         //Mobile app DBSets (table)
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<Transfer> Transfers { get; set; }
+        public DbSet<TransferBank> TransferBanks { get; set; }
+        public DbSet<EvidenceOfTransfer> EvidenceOfTransfers { get; set; }
+        public DbSet<AccountPayment> AccountPayments { get; set; }
+        public DbSet<ThirdPartyPayment> ThirdPartyPayments { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -46,6 +51,17 @@ namespace IceCareNigLtd.Infrastructure.Data
                 entity.Property(e => e.Reason).HasMaxLength(500);
                 entity.Property(e => e.AccountNumber).HasMaxLength(50);
             });
+
+
+            modelBuilder.Entity<Transfer>()
+                .HasMany(t => t.BankDetails)
+                .WithOne(tb => tb.Transfer)
+                .HasForeignKey(tb => tb.TransferId);
+
+            modelBuilder.Entity<Transfer>()
+                .HasMany(t => t.TransferEvidence)
+                .WithOne(te => te.Transfer)
+                .HasForeignKey(te => te.TransferId);
         }
     }
 }

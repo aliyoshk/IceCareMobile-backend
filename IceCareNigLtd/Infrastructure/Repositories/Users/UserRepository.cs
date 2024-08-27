@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Net.NetworkInformation;
+using System.Security.Cryptography.Xml;
+using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces.Users;
@@ -6,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IceCareNigLtd.Infrastructure.Repositories.Users
 {
-	public class UserRepository : IUserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _context;
 
@@ -25,12 +28,6 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             return await _context.Registrations
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
-
-        //public async Task<Registration> GetUserByPhoneAsync(string phone)
-        //{
-        //    return await _context.Registrations.AnyAsync(p => p.Phone == phone);
-        //    return await _context.Registrations.AnyAsync(u => u.Phone == phone);
-        //}
 
         public async Task<List<Registration>> GetUsersByStatusAsync(string status)
         {
@@ -83,6 +80,35 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<bool> IsPhoneNumberExistsAsync(string phoneNumber)
         {
             return await _context.Registrations.AnyAsync(p => p.Phone == phoneNumber);
+        }
+
+        public async Task ResetPasswordAsync(Registration user)
+        {
+            var userDetail = await _context.Registrations.FindAsync(user.Id);
+            if (userDetail != null)
+            {
+                userDetail.Password = user.Password;
+                _context.Registrations.Update(userDetail);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task FundTransferAsync(Transfer transfer)
+        {
+            await _context.Transfers.AddAsync(transfer);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AccountPaymentAsync(AccountPayment accountPayment)
+        {
+            await _context.AccountPayments.AddAsync(accountPayment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ThirdPartyPaymentAsync(ThirdPartyPayment thirdPartyPayment)
+        {
+            await _context.ThirdPartyPayments.AddAsync(thirdPartyPayment);
+            await _context.SaveChangesAsync();
         }
     }
 }

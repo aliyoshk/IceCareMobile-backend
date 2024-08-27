@@ -3,6 +3,7 @@ using System;
 using IceCareNigLtd.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IceCareNigLtd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240827092222_RemoveListCompanyAccountsColumn")]
+    partial class RemoveListCompanyAccountsColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -135,15 +137,8 @@ namespace IceCareNigLtd.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<decimal>("Balance")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
@@ -160,9 +155,6 @@ namespace IceCareNigLtd.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("PaymentCurrency")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -258,61 +250,6 @@ namespace IceCareNigLtd.Migrations
                     b.ToTable("Suppliers");
                 });
 
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.AccountPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CustomerAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("DollarAmount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("NairaAmount")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AccountPayments");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.EvidenceOfTransfer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Receipts")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TransferId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TransferId");
-
-                    b.ToTable("EvidenceOfTransfers");
-                });
-
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.Registration", b =>
                 {
                     b.Property<int>("Id")
@@ -365,107 +302,6 @@ namespace IceCareNigLtd.Migrations
                     b.ToTable("Registrations");
                 });
 
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.ThirdPartyPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CustomerAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ThirdPartyPayments");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.Transfer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CustomerAccount")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("DollarAmount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Transfers");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.TransferBank", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("BankName")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TransferId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("TransferredAmount")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TransferId");
-
-                    b.ToTable("TransferBanks");
-                });
-
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.BankInfo", b =>
                 {
                     b.HasOne("IceCareNigLtd.Core.Entities.Customer", null)
@@ -488,28 +324,6 @@ namespace IceCareNigLtd.Migrations
                         .HasForeignKey("SettingsId");
                 });
 
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.EvidenceOfTransfer", b =>
-                {
-                    b.HasOne("IceCareNigLtd.Core.Entities.Users.Transfer", "Transfer")
-                        .WithMany("TransferEvidence")
-                        .HasForeignKey("TransferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Transfer");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.TransferBank", b =>
-                {
-                    b.HasOne("IceCareNigLtd.Core.Entities.Users.Transfer", "Transfer")
-                        .WithMany("BankDetails")
-                        .HasForeignKey("TransferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Transfer");
-                });
-
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Customer", b =>
                 {
                     b.Navigation("Banks");
@@ -523,13 +337,6 @@ namespace IceCareNigLtd.Migrations
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Supplier", b =>
                 {
                     b.Navigation("Banks");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.Transfer", b =>
-                {
-                    b.Navigation("BankDetails");
-
-                    b.Navigation("TransferEvidence");
                 });
 #pragma warning restore 612, 618
         }

@@ -24,6 +24,37 @@ namespace IceCareNigLtd.Api.Controllers
         }
 
         [HttpPost]
+        [Route("AdminLogin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] AdminLoginDto loginDto)
+        {
+            if (loginDto == null)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Login data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
+            var response = await _adminService.LoginAsync(loginDto);
+
+            if (!response.Success)
+            {
+                return Unauthorized(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Errors = new List<string> { "Authentication failed." }
+                });
+            }
+
+            return Ok(response);
+        }
+
+        [HttpPost]
         [Route("AddAdmin")]
         //[Authorize(Policy = "AdminOnly")]
         [Authorize]
@@ -131,42 +162,8 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            return NoContent();
+            return Ok(result.Message);
         }
-
-
-
-        [HttpPost]
-        [Route("Login")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] AdminLoginDto loginDto)
-        {
-            if (loginDto == null)
-            {
-                return BadRequest(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Login data cannot be null.",
-                    Errors = new List<string> { "Invalid input." }
-                });
-            }
-
-            var response = await _adminService.LoginAsync(loginDto);
-
-            if (!response.Success)
-            {
-                return Unauthorized(new ErrorResponse
-                {
-                    Success = false,
-                    Message = response.Message,
-                    Errors = new List<string> { "Authentication failed." }
-                });
-            }
-
-            return Ok(response);
-        }
-
 
 
         // MOBILE PART INTEGRATION

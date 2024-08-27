@@ -10,7 +10,8 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
         Task<string> GetCompanyPhoneNumbersAsync();
         Task<bool> UpdateCompanyPhoneNumbersAsync(List<string> phoneNumbers);
         Task<List<CompanyAccounts>> GetCompanyAccountsAsync();
-        Task<bool> UpdateAccountsAsync(List<CompanyAccounts> accounts);
+        Task AddCompanyAccountAsync(CompanyAccounts accounts);
+        Task<bool> DeleteAccountAsync(int bankId);
     }
 }
 

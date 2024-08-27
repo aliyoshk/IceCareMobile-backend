@@ -55,23 +55,28 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<List<CompanyAccounts>> GetCompanyAccountsAsync()
         {
-            var settings = await _context.Settings.FirstOrDefaultAsync();
-            if (settings == null)
+            var accounts = await _context.CompanyAccounts.ToListAsync();
+            if (accounts == null)
             {
-                return new List<CompanyAccounts>();
+                return new List<CompanyAccounts>(); ;
             }
-            return settings.CompanyAccounts;
+            return accounts;
         }
 
-        public async Task<bool> UpdateAccountsAsync(List<CompanyAccounts> accounts)
+        public async Task AddCompanyAccountAsync(CompanyAccounts accounts)
         {
-            var settings = await _context.Settings.FirstOrDefaultAsync();
-            if (settings == null)
+            await _context.CompanyAccounts.AddAsync(accounts);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteAccountAsync(int bankId)
+        {
+            var companyAccount = await _context.CompanyAccounts.FindAsync(bankId);
+            if (companyAccount == null)
             {
                 return false;
             }
-
-            settings.CompanyAccounts = accounts;
+            _context.CompanyAccounts.Remove(companyAccount);
             await _context.SaveChangesAsync();
             return true;
         }

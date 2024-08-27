@@ -23,7 +23,7 @@ namespace IceCareNigLtd.Core.Enums
             Transfer
         }
 
-        public enum ExpenseType
+        public enum CreditType
         {
             Credit,
             Debit,
@@ -40,6 +40,12 @@ namespace IceCareNigLtd.Core.Enums
         {
             Approve,
             Reject
+        }
+
+        public enum PaymentCurrency
+        {
+            Naira,
+            Dollar
         }
     }
 }
