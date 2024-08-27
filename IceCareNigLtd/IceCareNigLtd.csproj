@@ -41,6 +41,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Remove="Core\Enums\" />
+    <None Remove="Api\Controllers\Users\" />
+    <None Remove="Api\Models\Users\" />
+    <None Remove="Core\Entities\Users\" />
+    <None Remove="Core\Interfaces\Users\" />
+    <None Remove="Core\Services\Users\" />
+    <None Remove="Infrastructure\Interfaces\Users\" />
+    <None Remove="Infrastructure\Repositories\Users\" />
+    <None Remove="Api\Models\Request\" />
+    <None Remove="Core\Utils\" />
+    <None Remove="Api\Models\Response\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Api\" />
@@ -57,6 +67,16 @@
     <Folder Include="Api\Middleware\" />
     <Folder Include="Api\Models\Network\" />
     <Folder Include="Core\Enums\" />
+    <Folder Include="Api\Controllers\Users\" />
+    <Folder Include="Api\Models\Users\" />
+    <Folder Include="Core\Entities\Users\" />
+    <Folder Include="Core\Interfaces\Users\" />
+    <Folder Include="Core\Services\Users\" />
+    <Folder Include="Infrastructure\Interfaces\Users\" />
+    <Folder Include="Infrastructure\Repositories\Users\" />
+    <Folder Include="Api\Models\Request\" />
+    <Folder Include="Core\Utils\" />
+    <Folder Include="Api\Models\Response\" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Properties\launchSettings.json">

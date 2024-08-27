@@ -20,7 +20,7 @@ namespace IceCareNigLtd.Core.Services
             _audience = configuration["Jwt:Audience"];
         }
 
-        public string GenerateToken(string email)
+        public string GenerateToken(string email, string name)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var keyBytes = Encoding.ASCII.GetBytes(_key);
@@ -29,6 +29,7 @@ namespace IceCareNigLtd.Core.Services
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Email, email),
+                    new Claim(ClaimTypes.Name, name),
                 }),
                 Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = _issuer,

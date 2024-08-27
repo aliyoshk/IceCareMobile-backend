@@ -2,11 +2,16 @@
 using IceCareNigLtd.Api.Request;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Interfaces.Users;
 using IceCareNigLtd.Core.Services;
+using IceCareNigLtd.Core.Services.Users;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Infrastructure.Interfaces.Users;
 using IceCareNigLtd.Infrastructure.Repositories;
+using IceCareNigLtd.Infrastructure.Repositories.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -90,7 +95,11 @@ builder.Services.AddAuthentication(options =>
 });
 
 // Add Authorisation
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
+});
 
 // Register repositories
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
@@ -99,6 +108,7 @@ builder.Services.AddScoped<IBankRepository, BankRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ISettingsRepository, SettingsRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Register services
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -108,7 +118,11 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+
 builder.Services.AddScoped<IDbSeeder, DbSeeder>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 
 var app = builder.Build();

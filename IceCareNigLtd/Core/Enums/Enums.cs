@@ -28,6 +28,19 @@ namespace IceCareNigLtd.Core.Enums
             Credit,
             Debit,
         }
+
+        public enum Channel
+        {
+            Mobile,
+            Web,
+            None
+        }
+
+        public enum ReviewAction
+        {
+            Approve,
+            Reject
+        }
     }
 }
 

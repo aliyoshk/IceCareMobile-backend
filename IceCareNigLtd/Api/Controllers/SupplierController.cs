@@ -31,6 +31,26 @@ namespace IceCareNigLtd.Api.Controllers
                 return BadRequest("Invalid supplier data.");
             }
 
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(supplierDto.Name), supplierDto.Name },
+                { nameof(supplierDto.DollarAmount), supplierDto.DollarAmount.ToString()},
+                { nameof(supplierDto.DollarRate), supplierDto.DollarRate.ToString() },
+                { nameof(supplierDto.ModeOfPayment), supplierDto.ModeOfPayment}
+            };
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
             var response = await _supplierService.AddSupplierAsync(supplierDto);
 
             if (!response.Success)

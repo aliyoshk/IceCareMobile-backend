@@ -36,6 +36,27 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(customerDto.Name), customerDto.Name },
+                { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
+                { nameof(customerDto.DollarAmount), customerDto.DollarAmount.ToString() },
+                { nameof(customerDto.DollarRate), customerDto.DollarRate.ToString() },
+                { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment}
+            };
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
             var response = await _customerService.AddCustomerAsync(customerDto);
 
             if (!response.Success)
