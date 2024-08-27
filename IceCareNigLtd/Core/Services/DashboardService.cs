@@ -118,7 +118,7 @@ namespace IceCareNigLtd.Core.Services
             var phoneNumbers = await _settingsRepository.GetCompanyPhoneNumbersAsync();
 
             //Get Company Accounts
-            var accounts = await _settingsRepository.GetCompanyAccountsAsync(_settingsRepository.GetValueTask());
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync();
 
             // Populate the DTO
             var dashboardDto = new DashboardDto
