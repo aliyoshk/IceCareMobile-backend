@@ -20,6 +20,26 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<SupplierDto>> AddSupplierAsync(SupplierDto supplierDto)
         {
+            if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && (supplierDto.Banks == null || !supplierDto.Banks.Any()))
+            {
+                return new Response<SupplierDto>
+                {
+                    Success = false,
+                    Message = "Banks information is required when Mode of Payment is Transfer.",
+                    Data = null
+                };
+            }
+
+            if (supplierDto.ModeOfPayment == ModeOfPayment.Cash.ToString() && (supplierDto.Banks != null && supplierDto.Banks.Any()))
+            {
+                return new Response<SupplierDto>
+                {
+                    Success = false,
+                    Message = "Banks information must be empty when Mode of Payment is Cash.",
+                    Data = null
+                };
+            }
+
             var totalDollarAmount = supplierDto.DollarAmount;
             var totalNairaAmount = supplierDto.TotalNairaAmount;
 
@@ -33,12 +53,13 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = supplierDto.DollarAmount,
                 TotalDollarAmount = totalDollarAmount,
                 TotalNairaAmount = totalNairaAmount,
-                Banks = supplierDto.Banks.Select(b => new BankInfo
+                Banks = supplierDto.Banks?.Select(b => new BankInfo
                 {
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList()
+                }).ToList() ?? new List<BankInfo>()
             };
+
             await _supplierRepository.AddSupplierAsync(supplier);
 
             // Register the bank details with the bank module
@@ -49,7 +70,7 @@ namespace IceCareNigLtd.Core.Services
                     BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
                     Date = DateTime.UtcNow,
                     PersonType = PersonType.Supplier,
-                    ExpenseType = ExpenseType.Credit,
+                    ExpenseType = ExpenseType.Debit,
                     Amount = bankInfo.AmountTransferred,
                 };
 
