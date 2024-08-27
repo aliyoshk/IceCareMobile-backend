@@ -3,6 +3,7 @@ using System;
 using IceCareNigLtd.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IceCareNigLtd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240824103616_AddRegistrationTable")]
+    partial class AddRegistrationTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -99,34 +101,6 @@ namespace IceCareNigLtd.Migrations
                     b.HasIndex("SupplierId");
 
                     b.ToTable("BankInfo");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.CompanyAccounts", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("SettingsId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SettingsId");
-
-                    b.ToTable("CompanyAccounts");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Customer", b =>
@@ -251,11 +225,6 @@ namespace IceCareNigLtd.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
@@ -283,10 +252,6 @@ namespace IceCareNigLtd.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ReviewedBy")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -312,21 +277,9 @@ namespace IceCareNigLtd.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.CompanyAccounts", b =>
-                {
-                    b.HasOne("IceCareNigLtd.Core.Entities.Settings", null)
-                        .WithMany("CompanyAccounts")
-                        .HasForeignKey("SettingsId");
-                });
-
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Customer", b =>
                 {
                     b.Navigation("Banks");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Settings", b =>
-                {
-                    b.Navigation("CompanyAccounts");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Supplier", b =>

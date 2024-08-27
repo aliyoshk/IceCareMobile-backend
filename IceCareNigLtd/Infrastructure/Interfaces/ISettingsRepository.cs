@@ -1,4 +1,6 @@
 ﻿using System;
+using IceCareNigLtd.Core.Entities;
+
 namespace IceCareNigLtd.Infrastructure.Interfaces
 {
 	public interface ISettingsRepository
@@ -7,6 +9,8 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
         Task<bool> UpdateDollarRateAsync(decimal newDollarRate);
         Task<string> GetCompanyPhoneNumbersAsync();
         Task<bool> UpdateCompanyPhoneNumbersAsync(List<string> phoneNumbers);
+        Task<List<CompanyAccounts>> GetCompanyAccountsAsync();
+        Task<bool> UpdateAccountsAsync(List<CompanyAccounts> accounts);
     }
 }
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using IceCareNigLtd.Core.Entities;
+
 namespace IceCareNigLtd.Api.Models
 {
 	public class DashboardDto
@@ -12,6 +14,7 @@ namespace IceCareNigLtd.Api.Models
         public string CompanyPhoneNumbers { get; set; }
         public string AdminRole { get; set; }
         public bool ShowAdminPanel { get; set; }
+        public List<CompanyAccounts> CompanyAccounts = new List<CompanyAccounts>();
     }
 }
 

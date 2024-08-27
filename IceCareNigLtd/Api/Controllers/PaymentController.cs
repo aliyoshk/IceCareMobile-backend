@@ -31,6 +31,25 @@ namespace IceCareNigLtd.Api.Controllers
                 return BadRequest("Payment data cannot be null.");
             }
 
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(paymentDto.CustomerName), paymentDto.CustomerName },
+                { nameof(paymentDto.ModeOfPayment), paymentDto.ModeOfPayment},
+                { nameof(paymentDto.DollarAmount), paymentDto.DollarAmount.ToString() }
+            };
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
             var response = await _paymentService.AddPaymentAsync(paymentDto);
 
             if (!response.Success)

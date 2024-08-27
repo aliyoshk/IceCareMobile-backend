@@ -2,6 +2,7 @@
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +29,24 @@ namespace IceCareNigLtd.Api.Controllers
             if (bankDto == null)
             {
                 return BadRequest("Bank data cannot be null.");
+            }
+
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(bankDto.BankName), bankDto.BankName },
+                { nameof(bankDto.Amount), bankDto.Amount.ToString() }
+            };
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
             }
 
             var response = await _bankService.AddBankAsync(bankDto);

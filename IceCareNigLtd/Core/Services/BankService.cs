@@ -21,7 +21,7 @@ namespace IceCareNigLtd.Core.Services
             var bank = new Bank
             {
                 BankName = Enum.Parse<BankName>(bankDto.BankName.ToString()),
-                Date = bankDto.Date,
+                Date = DateTime.Now,
                 PersonType = Enum.Parse<PersonType>(bankDto.PersonType.ToString()),
                 ExpenseType = Enum.Parse<ExpenseType>(bankDto.PersonType.ToString()),
                 Amount = bankDto.Amount
@@ -38,7 +38,7 @@ namespace IceCareNigLtd.Core.Services
             var bankDtos = banks.Select(b => new BankDto
             {
                 BankName = b.BankName.ToString(),
-                Date = b.Date,
+                Date = DateTime.Now,
                 PersonType = b.PersonType.ToString(),
                 ExpenseType = b.ExpenseType.ToString(),
                 Amount = b.Amount

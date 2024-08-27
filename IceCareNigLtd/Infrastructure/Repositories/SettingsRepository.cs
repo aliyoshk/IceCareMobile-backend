@@ -1,4 +1,5 @@
 ﻿using System;
+using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +49,29 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             }
 
             settings.CompanyPhoneNumbers = string.Join(",", phoneNumbers);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<CompanyAccounts>> GetCompanyAccountsAsync()
+        {
+            var settings = await _context.Settings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                return new List<CompanyAccounts>();
+            }
+            return settings.CompanyAccounts;
+        }
+
+        public async Task<bool> UpdateAccountsAsync(List<CompanyAccounts> accounts)
+        {
+            var settings = await _context.Settings.FirstOrDefaultAsync();
+            if (settings == null)
+            {
+                return false;
+            }
+
+            settings.CompanyAccounts = accounts;
             await _context.SaveChangesAsync();
             return true;
         }

@@ -117,6 +117,9 @@ namespace IceCareNigLtd.Core.Services
             // Get Company Phone Numbers
             var phoneNumbers = await _settingsRepository.GetCompanyPhoneNumbersAsync();
 
+            //Get Company Accounts
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync(_settingsRepository.GetValueTask());
+
             // Populate the DTO
             var dashboardDto = new DashboardDto
             {
@@ -128,7 +131,8 @@ namespace IceCareNigLtd.Core.Services
                 AvailableDollarAmount = availableDollarAmount,
                 DollarRate = dollarRate,
                 CompanyPhoneNumbers = phoneNumbers,
-                ShowAdminPanel =  admin.Role != "normal"  ? false : true
+                ShowAdminPanel =  admin.Role != "normal"  ? false : true,
+                CompanyAccounts = accounts
             };
 
             return new Response<DashboardDto>
@@ -175,6 +179,46 @@ namespace IceCareNigLtd.Core.Services
             {
                 Success = true,
                 Message = "Company phone numbers updated successfully",
+                Data = true
+            };
+        }
+
+        public async Task<Response<bool>> UpdateCompanyAccountsAsync(List<string> phoneNumbers)
+        {
+            var result = await _settingsRepository.UpdateCompanyPhoneNumbersAsync(phoneNumbers);
+            if (!result)
+            {
+                return new Response<bool>
+                {
+                    Success = false,
+                    Message = "Failed to update company phone numbers"
+                };
+            }
+
+            return new Response<bool>
+            {
+                Success = true,
+                Message = "Company phone numbers updated successfully",
+                Data = true
+            };
+        }
+
+        public async Task<Response<bool>> UpdateAccountsAsync(List<CompanyAccounts> accounts)
+        {
+            var result = await _settingsRepository.UpdateAccountsAsync(accounts);
+            if (!result)
+            {
+                return new Response<bool>
+                {
+                    Success = false,
+                    Message = "Failed to update company accounts"
+                };
+            }
+
+            return new Response<bool>
+            {
+                Success = true,
+                Message = "Accounts updated successfully",
                 Data = true
             };
         }
