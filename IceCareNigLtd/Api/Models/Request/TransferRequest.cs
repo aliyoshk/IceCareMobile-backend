@@ -11,6 +11,7 @@ namespace IceCareNigLtd.Api.Models.Request
         public List<TransferEvidence> TransferEvidence { get; set; }
         public DateTime TransactionDate { get; set; }
         public string CustomerEmail { get; set; }
+        public decimal DollarRate { get; set; }
     }
 
     public class BankDetails

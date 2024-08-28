@@ -19,6 +19,7 @@ namespace IceCareNigLtd.Core.Entities
         public string AccountNumber { get; set; }
         public Channel Channel { get; set; }
         public PaymentCurrency PaymentCurrency { get; set; }
+        public string PaymentEvidence { get; set; }
     }
 
     public class CustomerBankInfo

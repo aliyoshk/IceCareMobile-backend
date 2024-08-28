@@ -74,6 +74,7 @@ namespace IceCareNigLtd.Core.Services
                 Balance = customerDto.Balance,
                 PaymentCurrency = Enum.Parse<PaymentCurrency>(customerDto.PaymentCurrency.ToString()),
                 Channel = Channel.None,
+                PaymentEvidence = customerDto.PaymentEvidence,
                 Banks = customerDto.Banks.Select(b => new BankInfo
                 {
                     BankName = b.BankName,

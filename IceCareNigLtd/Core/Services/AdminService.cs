@@ -124,7 +124,7 @@ namespace IceCareNigLtd.Core.Services
             return new Response<List<UserDto>> { Success = true, Data = userDtos };
         }
 
-        public async Task<Response<string>> ChangeUserStatusAsync(ChangeUserStatusRequest request, string adminName = null)
+        public async Task<Response<string>> ChangeUserStatusAsync(ChangeUserStatusRequest request, string adminName = "")
         {
             var user = await _userRepository.GetUserByIdAsync(request.UserId);
             if (user == null)

@@ -15,6 +15,7 @@ namespace IceCareNigLtd.Core.Interfaces.Users
         Task<Response<bool>> FundTransferAsync(TransferRequest transferRequest);
         Task<Response<bool>> AccountPaymentAsync(AccountPaymentRequest accountPaymentRequest);
         Task<Response<bool>> ThirdPartyPaymentAsync(ThirdPartyPaymentRequest thirdPartyPaymentRequest);
+        Task<Response<string>> MoveUserToCustomersRecordAsync(int id);
     }
 }
 

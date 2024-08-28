@@ -22,14 +22,16 @@ namespace IceCareNigLtd.Core.Services.Users
         private readonly IPasswordHasher _passwordHasher;
         private readonly ISettingsRepository _settingsRepository;
         private readonly ICustomerRepository _customerRepository;
+        private readonly IBankRepository _bankRepository;
 
         public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, ISettingsRepository settingsRepository,
-             ICustomerRepository customerRepository)
+             ICustomerRepository customerRepository, IBankRepository bankRepository)
 		{
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
             _settingsRepository = settingsRepository;
             _customerRepository = customerRepository;
+            _bankRepository = bankRepository;
         }
 
         public async Task<Response<Registration>> RegisterUserAsync(RegistrationDto registrationDto)
@@ -200,9 +202,11 @@ namespace IceCareNigLtd.Core.Services.Users
                 DollarAmount = transferRequest.DollarAmount,
                 Description = transferRequest.Description,
                 Channel = Channel.Mobile,
-                CustomerAccount = customer.AccountNumber,
+                CustomerAccount = user.AccountNumber,
                 Balance = customer.Balance,
-                CustomerName = customer.Name,
+                CustomerName = user.FullName,
+                Email = user.Email,
+                DollarRate = transferRequest.DollarRate,
                 BankDetails = transferRequest.BankDetails.Select(b => new TransferBank
                 {
                     TransferredAmount = b.TransferredAmount,
@@ -237,6 +241,12 @@ namespace IceCareNigLtd.Core.Services.Users
             {
                 return new Response<bool> { Success = false, Message = "Customer not found", Data = false };
             }
+            if (customer.Balance < accountPaymentRequest.NairaAmount)
+            {
+                return new Response<bool> { Success = false, Message = "Insufficient balance",};
+            }
+
+            await _userRepository.SubtractTransferAmountAsync(accountPaymentRequest.CustomerEmail, accountPaymentRequest.NairaAmount);
 
             var data = new AccountPayment
             {
@@ -289,6 +299,75 @@ namespace IceCareNigLtd.Core.Services.Users
             {
                 Success = true,
                 Message = " Your transfer details has been successful submitted\nYou’ll be notified once the transfer has been made."
+            };
+        }
+
+        public async Task<Response<string>> MoveUserToCustomersRecordAsync(int id)
+        {
+            var userDetails = await _userRepository.GetTransferByIdAsync(id);
+            if (userDetails == null)
+            {
+                return new Response<string> { Success = false, Message = "User not found" };
+            }
+            var user = await _userRepository.GetUserByEmailAsync(userDetails.Email);
+            if (user == null)
+            {
+                return new Response<string> { Success = false, Message = "Email address is null"};
+            }
+            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
+            if (customer == null)
+            {
+                return new Response<string> { Success = false, Message = "Customer not found"};
+            }
+
+            
+            var totalNairaAmount = userDetails.BankDetails.Sum(b => b.TransferredAmount);
+            var data = new Customer
+            {
+                Name = userDetails.CustomerName,
+                PhoneNumber = customer.PhoneNumber,
+                Date = userDetails.TransactionDate,
+                ModeOfPayment = ModeOfPayment.Transfer,
+                DollarRate = userDetails.DollarRate,
+                DollarAmount = userDetails.DollarAmount,
+                TotalDollarAmount = userDetails.DollarAmount,
+                TotalNairaAmount = totalNairaAmount,
+                Balance = userDetails.Balance,
+                PaymentCurrency = PaymentCurrency.Naira,
+                Channel = Channel.Mobile,
+                PaymentEvidence = userDetails.TransferEvidence.FirstOrDefault()?.ToString() ?? "",
+                Banks = userDetails.BankDetails.Select(b => new BankInfo
+                {
+                    BankName = b.BankName.ToString(),
+                    AmountTransferred = b.TransferredAmount,
+                }).ToList()
+            };
+
+            await _customerRepository.AddCustomerAsync(customer);
+
+
+            // Register the bank details with the bank module
+            foreach (var bankInfo in userDetails.BankDetails)
+            {
+                var bank = new Bank
+                {
+                    BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
+                    Date = userDetails.TransactionDate,
+                    PersonType = PersonType.Customer,
+                    ExpenseType = CreditType.Credit,
+                    Amount = bankInfo.TransferredAmount,
+                };
+
+                await _bankRepository.AddBankAsync(bank);
+            }
+
+            await _userRepository.DeleteCustomerTransferRecordAsync(id);
+
+            return new Response<string>
+            {
+                Success = true,
+                Message = "Record added successfully",
+                Data = "User moved successfully"
             };
         }
     }

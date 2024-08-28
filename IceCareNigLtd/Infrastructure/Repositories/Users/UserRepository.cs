@@ -2,6 +2,7 @@
 using System.Net.NetworkInformation;
 using System.Security.Cryptography.Xml;
 using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces.Users;
@@ -99,6 +100,11 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             await _context.SaveChangesAsync();
         }
 
+        public async Task<Transfer> GetTransferByIdAsync(int id)
+        {
+            return await _context.Transfers.FindAsync(id);
+        }
+
         public async Task AccountPaymentAsync(AccountPayment accountPayment)
         {
             await _context.AccountPayments.AddAsync(accountPayment);
@@ -109,6 +115,36 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         {
             await _context.ThirdPartyPayments.AddAsync(thirdPartyPayment);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task SubtractTransferAmountAsync(string email, decimal amount)
+        {
+            var user = await _context.Transfers.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                if (user.Balance >= amount)
+                {
+                    user.Balance -= amount;
+                }
+                else
+                    return;
+
+                _context.Transfers.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteCustomerTransferRecordAsync(int userId)
+        {
+            var user = await _context.Transfers.FindAsync(userId);
+            if (user != null)
+            {
+                _context.Transfers.Remove(user);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

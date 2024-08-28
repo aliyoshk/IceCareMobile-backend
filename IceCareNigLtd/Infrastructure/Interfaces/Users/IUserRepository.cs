@@ -21,8 +21,11 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task ResetPasswordAsync(Registration user);
 
         Task FundTransferAsync(Transfer transfer);
+        Task<Transfer> GetTransferByIdAsync(int id);
         Task AccountPaymentAsync(AccountPayment accountPayment);
         Task ThirdPartyPaymentAsync(ThirdPartyPayment thirdPartyPayment);
+        Task SubtractTransferAmountAsync(string email, decimal amount);
+        Task DeleteCustomerTransferRecordAsync(int userId);
     }
 }
 
