@@ -1,12 +1,13 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Response;
 
 namespace IceCareNigLtd.Core.Interfaces
 {
     public interface ICustomerService
     {
-        Task<Response<CustomerDto>> AddCustomerAsync(CustomerDto customerDto);
-        Task<Response<List<CustomerDto>>> GetCustomersAsync();
+        Task<Response<bool>> AddCustomerAsync(CustomerDto customerDto);
+        Task<Response<CustomerResponse>> GetCustomersAsync();
     }
 }
 

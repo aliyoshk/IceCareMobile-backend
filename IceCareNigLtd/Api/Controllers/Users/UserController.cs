@@ -125,7 +125,8 @@ namespace IceCareNigLtd.Api.Controllers.Users
                     });
                 }
 
-                return CreatedAtAction(nameof(Register), new { id = result.Data.Id }, result.Data);
+                return Ok(result);
+                //return CreatedAtAction(nameof(Register), new { id = result.Data }, result.Data);
             }
             catch (Exception ex)
             {
@@ -243,7 +244,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                     Data = false
                 });
             }
-            return Ok(response.Data);
+            return Ok(response);
         }
 
 
@@ -283,7 +284,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                     Data = false
                 });
             }
-            return Ok(response.Data);
+            return Ok(response);
         }
 
         [HttpPost]
@@ -324,7 +325,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                     Data = false
                 });
             }
-            return Ok(response.Data);
+            return Ok(response);
         }
     }
 }

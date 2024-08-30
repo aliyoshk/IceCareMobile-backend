@@ -1,9 +1,11 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Api.Controllers
 {
@@ -42,10 +44,8 @@ namespace IceCareNigLtd.Api.Controllers
                 { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
                 { nameof(customerDto.DollarAmount), customerDto.DollarAmount.ToString() },
                 { nameof(customerDto.DollarRate), customerDto.DollarRate.ToString() },
-                { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
-                {nameof(customerDto.PaymentCurrency), customerDto.PaymentCurrency },
-                {nameof(customerDto.Balance), customerDto.Balance.ToString() },
-                { nameof(customerDto.Balance), customerDto.Balance.ToString()}
+                { nameof(customerDto.PaymentCurrency), customerDto.PaymentCurrency },
+                { nameof(customerDto.Balance), customerDto.Balance.ToString() }
             };
             foreach (var field in requiredFields)
             {
@@ -60,6 +60,16 @@ namespace IceCareNigLtd.Api.Controllers
                 }
             }
 
+            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && customerDto.Banks[0].AmountTransferred <= 0)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Banks details cannot be null",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
             var response = await _customerService.AddCustomerAsync(customerDto);
 
             if (!response.Success)
@@ -72,7 +82,6 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            //return CreatedAtAction(nameof(GetCustomerById), new { id = response.Data }, response);
             return CreatedAtAction(nameof(GetCustomers), new { id = response.Data }, response);
         }
 
@@ -87,22 +96,16 @@ namespace IceCareNigLtd.Api.Controllers
         {
             var customers = await _customerService.GetCustomersAsync();
 
-            if (customers == null || customers.Data == null || !customers.Data.Any())
+            if (!customers.Data.Customers.Any())
             {
                 return NotFound(new ErrorResponse
                 {
                     Success = false,
-                    Message = "No customers found.",
+                    Message = "No Customer found.",
                     Errors = new List<string> { "Customer list is empty." }
                 });
             }
-
-            return Ok(new Response<IEnumerable<CustomerDto>>
-            {
-                Success = true,
-                Message = "Customers retrieved successfully.",
-                Data = customers.Data
-            });
+            return Ok(customers.Data);
         }
     }
 }

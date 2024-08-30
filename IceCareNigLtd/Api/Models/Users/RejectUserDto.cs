@@ -1,9 +1,9 @@
 ﻿using System;
 namespace IceCareNigLtd.Api.Models.Users
 {
-	public class RejectUserDto
+	public class ActionUserDto
 	{
-        public string RejectionReason { get; set; }
+        public string Reason { get; set; }
     }
 }
 

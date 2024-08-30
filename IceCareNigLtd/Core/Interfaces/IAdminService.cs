@@ -1,5 +1,7 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using static IceCareNigLtd.Core.Enums.Enums;
 
@@ -18,6 +20,13 @@ namespace IceCareNigLtd.Core.Interfaces
         Task<Response<string>> ChangeUserStatusAsync(ChangeUserStatusRequest request, string adminName = null);
         Task<Response<List<UserDto>>> GetApprovedUsersAsync();
         Task<Response<List<UserDto>>> GetRejectedUsersAsync();
+
+
+        
+        Task<Response<List<TransferResponse>>> GetPendingTransferAsync();
+        Task<Response<List<TransferResponse>>> GetApprovedTransferAsync();
+        Task<Response<string>> ConfirmTransferAsync(ConfirmationRequest request, string adminName = null);
+        Task<Response<List<TransferResponse>>> GetUsersByTransferStatusAsync(string status);
     }
 }
 

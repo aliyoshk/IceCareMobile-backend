@@ -1,5 +1,7 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
@@ -18,30 +20,30 @@ namespace IceCareNigLtd.Core.Services
             _bankRepository = bankRepository;
         }
 
-        public async Task<Response<SupplierDto>> AddSupplierAsync(SupplierDto supplierDto)
+        public async Task<Response<bool>> AddSupplierAsync(SupplierRequest supplierDto)
         {
             if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && (supplierDto.Banks == null || !supplierDto.Banks.Any()))
             {
-                return new Response<SupplierDto>
+                return new Response<bool>
                 {
                     Success = false,
                     Message = "Banks information is required when Mode of Payment is Transfer.",
-                    Data = null
+                    Data = false
                 };
             }
 
             if (supplierDto.ModeOfPayment == ModeOfPayment.Cash.ToString() && (supplierDto.Banks != null && supplierDto.Banks.Any()))
             {
-                return new Response<SupplierDto>
+                return new Response<bool>
                 {
                     Success = false,
                     Message = "Banks information must be empty when Mode of Payment is Cash.",
-                    Data = null
+                    Data = false
                 };
             }
 
-            var totalDollarAmount = supplierDto.TotalDollarAmount;
-            var totalNairaAmount = supplierDto.TotalNairaAmount;
+            decimal? total = supplierDto.Banks.Sum(a => a.AmountTransferred);
+            var totalNairaAmount = total ?? supplierDto.Amount;
 
             var supplier = new Supplier
             {
@@ -51,8 +53,8 @@ namespace IceCareNigLtd.Core.Services
                 ModeOfPayment = Enum.Parse<ModeOfPayment>(supplierDto.ModeOfPayment.ToString()),
                 DollarRate = supplierDto.DollarRate,
                 DollarAmount = supplierDto.DollarAmount,
-                TotalDollarAmount = totalDollarAmount,
                 TotalNairaAmount = totalNairaAmount,
+                Channel = Channel.WalkIn,
                 Banks = supplierDto.Banks?.Select(b => new BankInfo
                 {
                     BankName = b.BankName,
@@ -77,18 +79,20 @@ namespace IceCareNigLtd.Core.Services
                 await _bankRepository.AddBankAsync(bank);
             }
 
-            return new Response<SupplierDto>
+            return new Response<bool>
             {
                 Success = true,
                 Message = "Supplier added successfully",
-                Data = supplierDto
+                Data = true
             };
         }
 
-        public async Task<Response<List<SupplierDto>>> GetSuppliersAsync()
+        public async Task<Response<SupplierResponse>> GetSuppliersAsync()
         {
             var suppliers = await _supplierRepository.GetSuppliersAsync();
-            var supplierDtos = suppliers.Select(s => new SupplierDto
+
+            // Map suppliers to SupplierRequest objects
+            var supplierDtos = suppliers.Select(s => new SupplierRequest
             {
                 Name = s.Name,
                 PhoneNumber = s.PhoneNumber,
@@ -96,8 +100,8 @@ namespace IceCareNigLtd.Core.Services
                 ModeOfPayment = s.ModeOfPayment.ToString(),
                 DollarRate = s.DollarRate,
                 DollarAmount = s.DollarAmount,
-                TotalDollarAmount = s.TotalDollarAmount,
-                TotalNairaAmount = s.TotalNairaAmount,
+                Amount = s.TotalNairaAmount,
+                Channel = s.Channel.ToString(),
                 Banks = s.Banks.Select(b => new BankInfoDto
                 {
                     BankName = b.BankName.ToString(),
@@ -105,21 +109,25 @@ namespace IceCareNigLtd.Core.Services
                 }).ToList()
             }).ToList();
 
-            // Calculate the total number of suppliers and the total amount transferred
-            var totalCustomers = supplierDtos.Count;
-            //var totalAmountTransferred = supplierDtos.Sum(c => c.Banks.Sum(b => b.AmountTransferred));
-            var responseDto = new SuppliersResponseDto
+            // Calculate aggregate totals
+            var totalSuppliers = supplierDtos.Count();
+            var totalDollarAmount = supplierDtos.Sum(s => s.DollarAmount);
+            var totalNairaAmount = supplierDtos.Sum(s => s.Amount);
+
+            // Create the final response DTO that includes the list and totals
+            var responseDto = new SupplierResponse
             {
                 Suppliers = supplierDtos,
-                TotalCustomers = totalCustomers,
-                //TotalAmountTransferred = totalAmountTransferred
+                TotalSuppliers = totalSuppliers,
+                TotalDollarAmount = totalDollarAmount,
+                TotalNairaAmount = totalNairaAmount
             };
 
-            return new Response<List<SupplierDto>>
+            return new Response<SupplierResponse>
             {
                 Success = true,
                 Message = "Suppliers retrieved successfully",
-                Data = supplierDtos
+                Data = responseDto
             };
         }
     }

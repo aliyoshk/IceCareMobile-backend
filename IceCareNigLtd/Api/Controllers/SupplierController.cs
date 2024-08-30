@@ -1,6 +1,8 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +26,7 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> AddSupplier([FromBody] SupplierDto supplierDto)
+        public async Task<IActionResult> AddSupplier([FromBody] SupplierRequest supplierDto)
         {
             if (supplierDto == null || string.IsNullOrEmpty(supplierDto.Name) || supplierDto.Banks == null || !supplierDto.Banks.Any())
             {
@@ -77,7 +79,7 @@ namespace IceCareNigLtd.Api.Controllers
         {
             var response = await _supplierService.GetSuppliersAsync();
 
-            if (response == null || response.Data == null || !response.Data.Any())
+            if (!response.Data.Suppliers.Any())
             {
                 return NotFound(new ErrorResponse
                 {
@@ -86,13 +88,7 @@ namespace IceCareNigLtd.Api.Controllers
                     Errors = new List<string> { "Supplier list is empty." }
                 });
             }
-
-            return Ok(new Response<IEnumerable<SupplierDto>>
-            {
-                Success = true,
-                Message = "Suppliers retrieved successfully.",
-                Data = response.Data
-            });
+            return Ok(response.Data);
         }
     }
 }

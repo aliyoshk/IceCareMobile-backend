@@ -30,28 +30,22 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<decimal> GetTotalDollarAmountAsync()
         {
-            return await _context.Suppliers.SumAsync(s => s.TotalDollarAmount);
+            var totalDollarAmount = await _context.Suppliers.SumAsync(s => (double)s.DollarAmount);
+            return (decimal)totalDollarAmount;
         }
 
         public async Task SubtractDollarAmountAsync(decimal amount)
         {
-            var suppliers = await _context.Suppliers.OrderBy(s => s.TotalDollarAmount).ToListAsync();
+            var suppliers = await _context.Suppliers.OrderBy(s => (double)s.DollarAmount).ToListAsync();
 
             foreach (var supplier in suppliers)
             {
                 if (amount <= 0)
                     break;
 
-                if (supplier.TotalDollarAmount >= amount)
-                {
-                    supplier.TotalDollarAmount -= amount;
-                    amount = 0;
-                }
-                else
-                {
-                    amount -= supplier.TotalDollarAmount;
-                    supplier.TotalDollarAmount = 0;
-                }
+                var deduction = Math.Min(amount, supplier.DollarAmount);
+                supplier.DollarAmount -= deduction;
+                amount -= deduction;
 
                 _context.Suppliers.Update(supplier);
             }

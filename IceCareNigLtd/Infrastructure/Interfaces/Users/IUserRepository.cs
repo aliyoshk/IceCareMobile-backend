@@ -22,6 +22,9 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
 
         Task FundTransferAsync(Transfer transfer);
         Task<Transfer> GetTransferByIdAsync(int id);
+        Task ApproveTransferAsync(Transfer user);
+        Task<List<Transfer>> GetTransferByStatusAsync(string status);
+        Task<bool> IsTransferRefrenceExistsAsync(string transactionReference);
         Task AccountPaymentAsync(AccountPayment accountPayment);
         Task ThirdPartyPaymentAsync(ThirdPartyPayment thirdPartyPayment);
         Task SubtractTransferAmountAsync(string email, decimal amount);

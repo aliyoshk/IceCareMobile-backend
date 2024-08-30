@@ -1,9 +1,12 @@
 ﻿using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces.Users;
+using IceCareNigLtd.Infrastructure.Repositories;
 using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Core.Services
@@ -16,14 +19,22 @@ namespace IceCareNigLtd.Core.Services
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
 
+        private readonly ISupplierRepository _supplierRepository;
+        private readonly ICustomerRepository _customerRepository;
+        private readonly IBankRepository _bankRepository;
+
         public AdminService(IAdminRepository adminRepository, ITokenService tokenService, IConfiguration configuration,
-            IUserRepository userRepository, IPasswordHasher passwordHasher)
+            IUserRepository userRepository, IPasswordHasher passwordHasher, ISupplierRepository supplierRepository,
+            ICustomerRepository customerRepository, IBankRepository bankRepository)
         {
             _adminRepository = adminRepository;
             _tokenService = tokenService;
             _configuration = configuration;
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
+            _supplierRepository = supplierRepository;
+            _customerRepository = customerRepository;
+            _bankRepository = bankRepository;
         }
 
         public async Task<Response<AdminDto>> AddAdminAsync(AdminDto adminDto)
@@ -139,15 +150,15 @@ namespace IceCareNigLtd.Core.Services
                     user.Status = "Approved";
                     user.AccountNumber = accountNumber;
                     user.ReviewedBy = adminName;
-                    user.Reason = request.RejectUserDto.RejectionReason;
+                    user.Reason = request.ActionUserDto.Reason;
                     await _userRepository.MoveToApprovedAsync(user);
                     break;
 
                 case ReviewAction.Reject:
                     user.Status = "Rejected";
-                    if (request.RejectUserDto != null)
+                    if (request.ActionUserDto != null)
                     {
-                        user.Reason = request.RejectUserDto.RejectionReason;
+                        user.Reason = request.ActionUserDto.Reason;
                     }
                     user.ReviewedBy = adminName;
                     await _userRepository.MoveToRejectedAsync(user);
@@ -157,7 +168,7 @@ namespace IceCareNigLtd.Core.Services
                     return new Response<string> { Success = false, Message = "Invalid action." };
             }
 
-            return new Response<string> { Success = true, Message = $"User {request.Action} successfully." };
+            return new Response<string> { Success = true, Message = "Success", Data = $"User {request.Action} successfully." };
         }
 
 
@@ -210,7 +221,168 @@ namespace IceCareNigLtd.Core.Services
             while (await _userRepository.IsAccountNumberExistsAsync(accountNumber.ToString())); // Ensure it’s unique
             return accountNumber.ToString();
         }
+
+        public async Task<Response<List<TransferResponse>>> GetPendingTransferAsync()
+        {
+            var pendingTransfers = await _userRepository.GetTransferByStatusAsync("Pending");
+            var pendingTransfersDtos = pendingTransfers.Select(users => new TransferResponse
+            {
+                Id = users.Id,
+                Status = users.Status,
+                ApproverName = users.Approver,
+                Category = users.Category,
+                Description = users.Description,
+                DollarRate = users.DollarRate,
+                DollarAmount = users.DollarAmount,
+                TransactionDate = users.TransactionDate,
+                CustomerEmail = users.Email,
+                BankDetails = users.BankDetails.Select(b => new BankDetails
+                {
+                    BankName = b.BankName,
+                    TransferredAmount = b.TransferredAmount
+                }).ToList(),
+                TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
+                {
+                    Receipts = e.Receipts
+                }).ToList()
+            }).ToList();
+
+            return new Response<List<TransferResponse>>
+            {
+                Success = true,
+                Message = "Success",
+                Data = pendingTransfersDtos
+            };
+        }
+
+        public async Task<Response<List<TransferResponse>>> GetApprovedTransferAsync()
+        {
+            var confirmedTransfers = await _userRepository.GetTransferByStatusAsync("Confirmed");
+            var confirmedTransfersDtos = confirmedTransfers.Select(users => new TransferResponse
+            {
+                Id = users.Id,
+                Status = users.Status,
+                ApproverName = users.Approver,
+                Category = users.Category,
+                Description = users.Description,
+                DollarRate = users.DollarRate,
+                DollarAmount = users.DollarAmount,
+                TransactionDate = users.TransactionDate,
+                CustomerEmail = users.Email,
+                BankDetails = users.BankDetails.Select(b => new BankDetails
+                {
+                    BankName = b.BankName,
+                    TransferredAmount = b.TransferredAmount
+                }).ToList(),
+                TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
+                {
+                    Receipts = e.Receipts
+                }).ToList()
+            }).ToList();
+
+            return new Response<List<TransferResponse>>
+            {
+                Success = true,
+                Message = "Success",
+                Data = confirmedTransfersDtos
+            };
+        }
+
+        public async Task<Response<string>> ConfirmTransferAsync(ConfirmationRequest request, string adminName = null)
+        {
+            var user = await _userRepository.GetTransferByIdAsync(request.Id);
+            if (user == null)
+                return new Response<string> { Success = false, Message = "User not found.", Data = "User not found." };
+            if (user.Email != request.Email)
+                return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
+            var userRecord = await _userRepository.GetUserByEmailAsync(user.Email);
+
+            if (request.Confirmed)
+            {
+                user.Status = "Confirmed";
+                user.Approver = adminName;
+                await _userRepository.ApproveTransferAsync(user);
+            }
+            else
+                return new Response<string> { Success = false, Message = "Invalid action." };
+
+
+            decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
+            var customer = new Customer
+            {
+                Name = user.CustomerName,
+                Date = user.TransactionDate,
+                ModeOfPayment = ModeOfPayment.Transfer,
+                DollarRate = user.DollarRate,
+                DollarAmount = user.DollarAmount,
+                TotalNairaAmount = amount,
+                Balance = user.Balance,
+                PhoneNumber = userRecord.Phone ?? "",
+                PaymentCurrency = PaymentCurrency.Naira,
+                Channel = Channel.Mobile,
+                AccountNumber = user.CustomerAccount,
+                PaymentEvidence = user.TransferEvidence.FirstOrDefault()?.ToString() ?? "",
+                Banks = user.BankDetails.Select(b => new CustomerBankInfo
+                {
+                    BankName = b.BankName.ToString(),
+                    AmountTransferred = b.TransferredAmount,
+                }).ToList()
+            };
+
+            await _supplierRepository.SubtractDollarAmountAsync(customer.DollarAmount);
+            await _customerRepository.AddCustomerAsync(customer);
+
+            foreach (var bankInfo in customer.Banks)
+            {
+                var bank = new Bank
+                {
+                    BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
+                    Date = DateTime.UtcNow,
+                    PersonType = PersonType.Customer,
+                    ExpenseType = CreditType.Credit,
+                    Amount = bankInfo.AmountTransferred,
+                };
+
+                await _bankRepository.AddBankAsync(bank);
+            }
+            // we aren't deleting record at the moment
+            //await _userRepository.DeleteCustomerTransferRecordAsync(user.Id);
+
+            return new Response<string>
+            {
+                Success = true,
+                Message = "Success",
+                Data = $"User transfer status has been confirmed by {adminName}."
+            };
+        }
+
+        public async Task<Response<List<TransferResponse>>> GetUsersByTransferStatusAsync(string status)
+        {
+            var users = await _userRepository.GetTransferByStatusAsync(status);
+
+            var details = users.Select(user => new TransferResponse
+            {
+                Id = user.Id,
+                ApproverName = user.Approver,
+                DollarAmount = user.DollarAmount,
+                Category = user.Category,
+                CustomerEmail = user.Email,
+                Description = user.Description,
+                Status = user.Status,
+                DollarRate = user.DollarRate,
+                TransactionDate = user.TransactionDate,
+                TransferEvidence = user.TransferEvidence?.Select(e => new TransferEvidence
+                {
+                    Receipts = e.Receipts
+                }).ToList() ?? new List<TransferEvidence>(),
+                BankDetails = user.BankDetails?.Select(b => new BankDetails
+                {
+                    BankName = b.BankName,
+                    TransferredAmount = b.TransferredAmount
+                }).ToList() ?? new List<BankDetails>(),
+            }).ToList();
+
+            return new Response<List<TransferResponse>> { Success = true, Data = details };
+        }
     }
 }
-
-

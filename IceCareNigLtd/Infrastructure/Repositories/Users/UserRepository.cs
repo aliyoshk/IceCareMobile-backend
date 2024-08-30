@@ -100,9 +100,35 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             await _context.SaveChangesAsync();
         }
 
+        public async Task ApproveTransferAsync(Transfer user)
+        {
+            _context.Transfers.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<Transfer> GetTransferByIdAsync(int id)
         {
-            return await _context.Transfers.FindAsync(id);
+            return await _context.Transfers
+                .Include(t => t.BankDetails)
+                .Include(e => e.TransferEvidence)
+                .FirstAsync(t => t.Id == id);
+
+            //return await _context.Transfers.FindAsync((id));
+        }
+
+        public async Task<List<Transfer>> GetTransferByStatusAsync(string status)
+        {
+            //return await _context.Transfers.Where(t => t.Status == status).ToListAsync();
+            return await _context.Transfers
+                .Where(t => t.Status == status)
+                .Include(t => t.BankDetails)
+                .Include(t => t.TransferEvidence)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsTransferRefrenceExistsAsync(string transactionReference)
+        {
+            return await _context.Transfers.AnyAsync(t => t.TransferReference == transactionReference);
         }
 
         public async Task AccountPaymentAsync(AccountPayment accountPayment)

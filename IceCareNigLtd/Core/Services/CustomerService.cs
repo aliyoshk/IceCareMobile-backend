@@ -1,5 +1,7 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
@@ -21,45 +23,22 @@ namespace IceCareNigLtd.Core.Services
             _supplierRepository = supplierRepository;
         }
 
-        public async Task<Response<CustomerDto>> AddCustomerAsync(CustomerDto customerDto)
+        public async Task<Response<bool>> AddCustomerAsync(CustomerDto customerDto)
         {
-            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && (customerDto.Banks == null || !customerDto.Banks.Any()))
-            {
-                return new Response<CustomerDto>
-                {
-                    Success = false,
-                    Message = "M.O.P is Transfer, Banks information is required",
-                    Data = null
-                };
-            }
-
-            if (customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString() && (customerDto.Banks != null && customerDto.Banks.Any()))
-            {
-                return new Response<CustomerDto>
-                {
-                    Success = false,
-                    Message = "M.O.P is Cash, Banks information must be empty",
-                    Data = null
-                };
-            }
-
-            // Calculate the total dollar amount available from all suppliers
             var totalSupplierDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
-            // Check if the total supplier dollar amount is sufficient for the customer's dollar amount
+
             if (totalSupplierDollarAmount < customerDto.DollarAmount)
             {
-                return new Response<CustomerDto>
+                return new Response<bool>
                 {
                     Success = false,
-                    Message = "Insufficient supplier dollar amount to fulfill the customer request",
-                    Data = null
+                    Message = "Insufficient dollar to continue request",
+                    Data = true
                 };
             }
-            await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
-
-
-            var totalDollarAmount = customerDto.TotalDollarAmount;
-            var totalNairaAmount = customerDto.TotalNairaAmount;
+            
+            decimal? total = customerDto.Banks.Sum(a => a.AmountTransferred);
+            var totalNairaAmount = total ?? customerDto.Amount;
 
             var customer = new Customer
             {
@@ -69,23 +48,23 @@ namespace IceCareNigLtd.Core.Services
                 ModeOfPayment = Enum.Parse<ModeOfPayment>(customerDto.ModeOfPayment.ToString()),
                 DollarRate = customerDto.DollarRate,
                 DollarAmount = customerDto.DollarAmount,
-                TotalDollarAmount = totalDollarAmount,
                 TotalNairaAmount = totalNairaAmount,
                 Balance = customerDto.Balance,
                 PaymentCurrency = Enum.Parse<PaymentCurrency>(customerDto.PaymentCurrency.ToString()),
-                Channel = Channel.None,
+                Channel = Channel.WalkIn,
                 PaymentEvidence = customerDto.PaymentEvidence,
-                Banks = customerDto.Banks.Select(b => new BankInfo
+                AccountNumber = "N/A",
+                Banks = customerDto.Banks.Select(b => new CustomerBankInfo
                 {
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList() ?? new List<BankInfo>()
+                }).ToList() ?? new List<CustomerBankInfo>()
             };
 
+            await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
             await _customerRepository.AddCustomerAsync(customer);
 
             
-            // Register the bank details with the bank module
             foreach (var bankInfo in customerDto.Banks)
             {
                 var bank = new Bank
@@ -100,18 +79,18 @@ namespace IceCareNigLtd.Core.Services
                 await _bankRepository.AddBankAsync(bank);
             }
 
-            return new Response<CustomerDto>
+            return new Response<bool>
             {
                 Success = true,
                 Message = "Customer added successfully",
-                Data = customerDto
+                Data = true
             };
         }
 
-        public async Task<Response<List<CustomerDto>>> GetCustomersAsync()
+        public async Task<Response<CustomerResponse>> GetCustomersAsync()
         {
             var customers = await _customerRepository.GetCustomersAsync();
-            var customerDtos = customers.Select(c => new CustomerDto
+            var customerDtos = customers.Select(c => new CustomerResponseDto
             {
                 Name = c.Name,
                 PhoneNumber = c.PhoneNumber,
@@ -119,32 +98,36 @@ namespace IceCareNigLtd.Core.Services
                 ModeOfPayment = c.ModeOfPayment.ToString(),
                 DollarRate = c.DollarRate,
                 DollarAmount = c.DollarAmount,
-                TotalDollarAmount = c.TotalDollarAmount,
-                TotalNairaAmount = c.TotalNairaAmount,
+                PaymentEvidence = c.PaymentEvidence,
+                Amount = c.TotalNairaAmount,
                 Balance = c.Balance,
                 PaymentCurrency = c.PaymentCurrency.ToString(),
+                AccountNumber = c.AccountNumber,
                 Banks = c.Banks.Select(b => new BankInfoDto
                 {
-                    BankName = b.BankName.ToString(),
+                    BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList()
+                }).ToList(),
+                
             }).ToList();
 
-            // Calculate the total number of customers and the total amount transferred
-            var totalCustomers = customerDtos.Count;
-            //var totalAmountTransferred = customerDtos.Sum(c => c.Banks.Sum(b => b.AmountTransferred));
-            var responseDto = new CustomersResponseDto
+            var totalCustomers = customerDtos.Count();
+            var totalDollarAmount = customerDtos.Sum(s => s.DollarAmount);
+            var totalNairaAmount = customerDtos.Sum(s => s.Amount);
+
+            var response = new CustomerResponse
             {
-                Customers = customerDtos,
                 TotalCustomers = totalCustomers,
-                //TotalAmountTransferred = totalAmountTransferred
+                TotalDollarAmount = totalDollarAmount,
+                TotalNairaAmount = totalNairaAmount,
+                Customers = customerDtos
             };
 
-            return new Response<List<CustomerDto>>
+            return new Response<CustomerResponse>
             {
                 Success = true,
                 Message = "Customers retrieved successfully",
-                Data = customerDtos
+                Data = response
             };
         }
     }

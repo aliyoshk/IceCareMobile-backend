@@ -9,7 +9,7 @@ namespace IceCareNigLtd.Api.Models
         public int UserId { get; set; }
         public string PhoneNumber { get; set; }
         public ReviewAction Action { get; set; }
-        public RejectUserDto RejectUserDto { get; set; }
+        public ActionUserDto ActionUserDto { get; set; }
     }
 }
 

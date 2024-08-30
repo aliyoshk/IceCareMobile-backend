@@ -26,6 +26,11 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             return await _context.Customers.FirstOrDefaultAsync(a => a.Id == id);
         }
 
+        public async Task<Customer> GetCustomerByEmailAsync(string phone)
+        {
+            return await _context.Customers.FirstOrDefaultAsync(e => e.PhoneNumber == phone);
+        }
+
         public async Task<List<Customer>> GetCustomersAsync()
         {
             return await _context.Customers
@@ -38,7 +43,6 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             return await _context.Customers.CountAsync();
         }
 
-        
         public async Task<decimal> GetTotalTransferredAmountAsync()
         {
             return await _context.Customers.SumAsync(c => c.TotalNairaAmount);

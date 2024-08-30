@@ -33,7 +33,7 @@ namespace IceCareNigLtd.Core.Enums
         {
             Mobile,
             Web,
-            None
+            WalkIn
         }
 
         public enum ReviewAction
@@ -46,6 +46,14 @@ namespace IceCareNigLtd.Core.Enums
         {
             Naira,
             Dollar
+        }
+
+        public enum Category
+        {
+            SingleBankPayment,
+            MultipleBanksPayment,
+            AccountBalancePayment,
+            ThirdPartyPayment,
         }
     }
 }

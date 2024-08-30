@@ -23,36 +23,41 @@ namespace IceCareNigLtd.Core.Services.Users
         private readonly ISettingsRepository _settingsRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IBankRepository _bankRepository;
+        private readonly ISupplierRepository _supplierRepository;
 
         public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, ISettingsRepository settingsRepository,
-             ICustomerRepository customerRepository, IBankRepository bankRepository)
+             ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository)
 		{
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
             _settingsRepository = settingsRepository;
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
+            _supplierRepository = supplierRepository;
         }
 
-        public async Task<Response<Registration>> RegisterUserAsync(RegistrationDto registrationDto)
+        public async Task<Response<string>> RegisterUserAsync(RegistrationDto registrationDto)
         {
             var existingUser = await _userRepository.GetUserByEmailAsync(registrationDto.Email);
             var phoneNumberExists = await _userRepository.IsPhoneNumberExistsAsync(registrationDto.Phone);
 
             if (existingUser != null)
             {
-                return new Response<Registration>
+                return new Response<string>
                 {
                     Success = false,
-                    Message = "Email already in use."
+                    Message = "Registration error",
+                    Data = "Email already in user"
+
                 };
             }
             else if (phoneNumberExists)
             {
-                return new Response<Registration>
+                return new Response<string>
                 {
                     Success = false,
-                    Message = "Phone number already in use."
+                    Message = "Registration error",
+                    Data = "Phone number already in use."
                 };
             }
 
@@ -73,11 +78,11 @@ namespace IceCareNigLtd.Core.Services.Users
 
             await _userRepository.AddUserAsync(newUser);
 
-            return new Response<Registration>
+            return new Response<string>
             {
                 Success = true,
-                Message = "User registered successfully.",
-                Data = newUser
+                Message = "Success",
+                Data = "User registered successfully.",
             };
         }
 
@@ -108,6 +113,10 @@ namespace IceCareNigLtd.Core.Services.Users
                 };
             }
 
+            var balance = 0.0m;
+            if (customer != null)
+                balance = customer.Balance;
+
             var userDto = new LoginResponse
             {
                 Id = user.Id,
@@ -116,7 +125,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 Status = user.Status,
                 AccountNumber = user.AccountNumber,
                 Phone = user.Phone,
-                AccountBalance  = customer.Balance.ToString() ?? 0.ToString(),
+                AccountBalance  = balance.ToString(),
                 CompanyNumber = companyPhone,
                 DollarRate = dollarRate,
                 CompanyAccounts = companyAccounts
@@ -185,17 +194,28 @@ namespace IceCareNigLtd.Core.Services.Users
 
         public async Task<Response<bool>> FundTransferAsync(TransferRequest transferRequest)
         {
+            var totalSupplierDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
+            if (totalSupplierDollarAmount < transferRequest.DollarAmount)
+            {
+                return new Response<bool>
+                {
+                    Success = false,
+                    Message = "Request can not be completed, Please try again later",
+                    Data = true
+                };
+            }
+
             var user = await _userRepository.GetUserByEmailAsync(transferRequest.CustomerEmail);
             if (user == null)
             {
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
             }
-            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
-            if (customer == null)
-            {
-                return new Response<bool> { Success = false, Message = "Customer not found", Data = false };
-            }
 
+            Category transactionCategory = Category.SingleBankPayment;
+            if (transferRequest.BankDetails.Count > 1)
+                transactionCategory = Category.MultipleBanksPayment;
+
+            var transactionReference = await GenerateTransactionReference();
             var data = new Transfer
             {
                 TransactionDate = DateTime.Now,
@@ -203,10 +223,14 @@ namespace IceCareNigLtd.Core.Services.Users
                 Description = transferRequest.Description,
                 Channel = Channel.Mobile,
                 CustomerAccount = user.AccountNumber,
-                Balance = customer.Balance,
+                Balance = 0,
                 CustomerName = user.FullName,
                 Email = user.Email,
                 DollarRate = transferRequest.DollarRate,
+                TransferReference = transactionReference,
+                Status = "Pending",
+                Approver = user.ReviewedBy,
+                Category = transactionCategory,
                 BankDetails = transferRequest.BankDetails.Select(b => new TransferBank
                 {
                     TransferredAmount = b.TransferredAmount,
@@ -236,7 +260,7 @@ namespace IceCareNigLtd.Core.Services.Users
             {
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
             }
-            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
+            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id) ?? await _customerRepository.GetCustomerByEmailAsync(user.Email);
             if (customer == null)
             {
                 return new Response<bool> { Success = false, Message = "Customer not found", Data = false };
@@ -256,7 +280,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 CustomerAccount = customer.AccountNumber,
                 Balance = customer.Balance,
                 CustomerName = customer.Name,
-                Channel = Channel.None
+                Channel = Channel.WalkIn
             };
 
             await _userRepository.AccountPaymentAsync(data);
@@ -291,7 +315,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 CustomerAccount = customer.AccountNumber,
                 Balance = customer.Balance,
                 CustomerName = customer.Name,
-                Channel = Channel.None
+                Channel = Channel.WalkIn
             };
 
             await _userRepository.ThirdPartyPaymentAsync(data);
@@ -302,73 +326,14 @@ namespace IceCareNigLtd.Core.Services.Users
             };
         }
 
-        public async Task<Response<string>> MoveUserToCustomersRecordAsync(int id)
+        private async Task<string> GenerateTransactionReference()
         {
-            var userDetails = await _userRepository.GetTransferByIdAsync(id);
-            if (userDetails == null)
-            {
-                return new Response<string> { Success = false, Message = "User not found" };
-            }
-            var user = await _userRepository.GetUserByEmailAsync(userDetails.Email);
-            if (user == null)
-            {
-                return new Response<string> { Success = false, Message = "Email address is null"};
-            }
-            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
-            if (customer == null)
-            {
-                return new Response<string> { Success = false, Message = "Customer not found"};
-            }
+            int refNumber;
 
-            
-            var totalNairaAmount = userDetails.BankDetails.Sum(b => b.TransferredAmount);
-            var data = new Customer
-            {
-                Name = userDetails.CustomerName,
-                PhoneNumber = customer.PhoneNumber,
-                Date = userDetails.TransactionDate,
-                ModeOfPayment = ModeOfPayment.Transfer,
-                DollarRate = userDetails.DollarRate,
-                DollarAmount = userDetails.DollarAmount,
-                TotalDollarAmount = userDetails.DollarAmount,
-                TotalNairaAmount = totalNairaAmount,
-                Balance = userDetails.Balance,
-                PaymentCurrency = PaymentCurrency.Naira,
-                Channel = Channel.Mobile,
-                PaymentEvidence = userDetails.TransferEvidence.FirstOrDefault()?.ToString() ?? "",
-                Banks = userDetails.BankDetails.Select(b => new BankInfo
-                {
-                    BankName = b.BankName.ToString(),
-                    AmountTransferred = b.TransferredAmount,
-                }).ToList()
-            };
-
-            await _customerRepository.AddCustomerAsync(customer);
-
-
-            // Register the bank details with the bank module
-            foreach (var bankInfo in userDetails.BankDetails)
-            {
-                var bank = new Bank
-                {
-                    BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
-                    Date = userDetails.TransactionDate,
-                    PersonType = PersonType.Customer,
-                    ExpenseType = CreditType.Credit,
-                    Amount = bankInfo.TransferredAmount,
-                };
-
-                await _bankRepository.AddBankAsync(bank);
-            }
-
-            await _userRepository.DeleteCustomerTransferRecordAsync(id);
-
-            return new Response<string>
-            {
-                Success = true,
-                Message = "Record added successfully",
-                Data = "User moved successfully"
-            };
+            do
+                refNumber = Random.Shared.Next(100000, 999999);
+            while (await _userRepository.IsTransferRefrenceExistsAsync("ICNL" + refNumber.ToString()));
+            return $"ICNL{refNumber}";
         }
     }
 }

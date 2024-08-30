@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
+using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Core.Utils;
@@ -162,7 +163,7 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            return Ok(result.Message);
+            return Ok(result);
         }
 
 
@@ -210,7 +211,7 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            return Ok(result.Message);
+            return Ok(result);
         }
 
 
@@ -253,6 +254,73 @@ namespace IceCareNigLtd.Api.Controllers
                     Errors = new List<string> { "List is empty." }
                 });
             };
+            return Ok(result);
+        }
+
+
+        // Get Rejected Users
+        [HttpGet]
+        [Authorize]
+        [Route("GetPendingTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPendingTransfer()
+        {
+            var result = await _adminService.GetUsersByTransferStatusAsync("Pending");
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("GetApprovedTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetApprovedTransfer()
+        {
+            var result = await _adminService.GetUsersByTransferStatusAsync("Approved");
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("ConfirmTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ConfirmTransfer([FromBody] ConfirmationRequest request)
+        {
+            // Get admin's name from the current user
+            var adminName = User.Identity.Name ?? User.FindFirst(ClaimTypes.Name)?.Value;
+
+            // Call the service method with the request object and adminName
+            var result = await _adminService.ConfirmTransferAsync(request, adminName);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "User not found or invalid action." }
+                });
+            }
+
             return Ok(result);
         }
     }

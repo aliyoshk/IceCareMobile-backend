@@ -15,6 +15,10 @@ namespace IceCareNigLtd.Core.Entities.Users
         public Channel Channel { get; set; }
         public string Email { get; set; }
         public decimal DollarRate { get; set; }
+        public string TransferReference { get; set; }
+        public string Status { get; set; }
+        public string Approver { get; set; }
+        public Category Category { get; set; }
 
         public List<TransferBank> BankDetails { get; set; }
         public List<EvidenceOfTransfer> TransferEvidence { get; set; }
