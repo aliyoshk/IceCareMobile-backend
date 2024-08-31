@@ -34,7 +34,8 @@ namespace IceCareNigLtd.Infrastructure.Repositories
         public async Task<List<Customer>> GetCustomersAsync()
         {
             return await _context.Customers
-                .Include(c => c.Banks)
+                .Include(t => t.Banks)
+                .Include(e => e.PaymentEvidence)
                 .ToListAsync();
         }
 
@@ -45,7 +46,8 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<decimal> GetTotalTransferredAmountAsync()
         {
-            return await _context.Customers.SumAsync(c => c.TotalNairaAmount);
+            var totalAmount = await _context.Customers.SumAsync(c => (double)c.TotalNairaAmount);
+            return (decimal)totalAmount;
         }
     }
 }

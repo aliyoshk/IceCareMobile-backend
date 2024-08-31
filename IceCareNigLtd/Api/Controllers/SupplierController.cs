@@ -6,6 +6,7 @@ using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Api.Controllers
 {
@@ -51,6 +52,16 @@ namespace IceCareNigLtd.Api.Controllers
                         Errors = new List<string> { "Invalid input." }
                     });
                 }
+            }
+
+            if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && supplierDto.Banks[0].AmountTransferred <= 0)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Banks details cannot be null",
+                    Errors = new List<string> { "Invalid input." }
+                });
             }
 
             var response = await _supplierService.AddSupplierAsync(supplierDto);

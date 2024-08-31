@@ -52,13 +52,16 @@ namespace IceCareNigLtd.Core.Services
                 Balance = customerDto.Balance,
                 PaymentCurrency = Enum.Parse<PaymentCurrency>(customerDto.PaymentCurrency.ToString()),
                 Channel = Channel.WalkIn,
-                PaymentEvidence = customerDto.PaymentEvidence,
+                PaymentEvidence = customerDto.PaymentEvidence.Select(e => new CustomerPaymentReceipt
+                {
+                    Reciept = e.Receipt
+                }).ToList(),
                 AccountNumber = "N/A",
                 Banks = customerDto.Banks.Select(b => new CustomerBankInfo
                 {
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList() ?? new List<CustomerBankInfo>()
+                }).ToList()
             };
 
             await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
@@ -98,7 +101,10 @@ namespace IceCareNigLtd.Core.Services
                 ModeOfPayment = c.ModeOfPayment.ToString(),
                 DollarRate = c.DollarRate,
                 DollarAmount = c.DollarAmount,
-                PaymentEvidence = c.PaymentEvidence,
+                PaymentEvidence = c.PaymentEvidence.Select(e => new ReceiptDto
+                {
+                    Receipt = e.Reciept
+                }).ToList(),
                 Amount = c.TotalNairaAmount,
                 Balance = c.Balance,
                 PaymentCurrency = c.PaymentCurrency.ToString(),

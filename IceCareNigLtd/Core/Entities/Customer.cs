@@ -18,7 +18,7 @@ namespace IceCareNigLtd.Core.Entities
         public string AccountNumber { get; set; }
         public Channel Channel { get; set; }
         public PaymentCurrency PaymentCurrency { get; set; }
-        public string PaymentEvidence { get; set; }
+        public ICollection<CustomerPaymentReceipt> PaymentEvidence { get; set; } = new List<CustomerPaymentReceipt>();
     }
 
     public class CustomerBankInfo
@@ -26,6 +26,14 @@ namespace IceCareNigLtd.Core.Entities
         public int Id { get; set; }
         public string BankName { get; set; }
         public decimal AmountTransferred { get; set; }
+        public int CustomerId { get; set; }
+        public Customer Customer { get; set; }
+    }
+
+    public class CustomerPaymentReceipt
+    {
+        public int Id { get; set; }
+        public string Reciept { get; set; }
         public int CustomerId { get; set; }
         public Customer Customer { get; set; }
     }

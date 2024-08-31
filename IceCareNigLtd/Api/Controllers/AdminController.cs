@@ -286,7 +286,7 @@ namespace IceCareNigLtd.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetApprovedTransfer()
         {
-            var result = await _adminService.GetUsersByTransferStatusAsync("Approved");
+            var result = await _adminService.GetUsersByTransferStatusAsync("Confirmed");
             if (result.Data == null || !result.Data.Any())
             {
                 return NotFound(new ErrorResponse

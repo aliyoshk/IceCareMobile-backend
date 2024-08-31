@@ -304,7 +304,7 @@ namespace IceCareNigLtd.Core.Services
                 await _userRepository.ApproveTransferAsync(user);
             }
             else
-                return new Response<string> { Success = false, Message = "Invalid action." };
+                return new Response<string> { Success = false, Message = "Error.", Data = "Invalid Action"};
 
 
             decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
@@ -321,7 +321,10 @@ namespace IceCareNigLtd.Core.Services
                 PaymentCurrency = PaymentCurrency.Naira,
                 Channel = Channel.Mobile,
                 AccountNumber = user.CustomerAccount,
-                PaymentEvidence = user.TransferEvidence.FirstOrDefault()?.ToString() ?? "",
+                PaymentEvidence = user.TransferEvidence.Select(e => new CustomerPaymentReceipt
+                {
+                    Reciept = e.Receipts
+                }).ToList(),
                 Banks = user.BankDetails.Select(b => new CustomerBankInfo
                 {
                     BankName = b.BankName.ToString(),

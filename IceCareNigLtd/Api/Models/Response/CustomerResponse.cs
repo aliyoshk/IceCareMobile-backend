@@ -23,8 +23,13 @@ namespace IceCareNigLtd.Api.Models.Response
         public decimal Balance { get; set; }
         public decimal Amount { get; set; }
         public string PaymentCurrency { get; set; }
-        public string PaymentEvidence { get; set; }
+        public List<ReceiptDto> PaymentEvidence { get; set; }
         public string AccountNumber { get; set; }
+    }
+
+    public class ReceiptDto
+    {
+        public string Receipt { get; set; }
     }
 }
 

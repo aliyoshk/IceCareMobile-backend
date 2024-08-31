@@ -132,7 +132,7 @@ namespace IceCareNigLtd.Core.Services
                 AvailableDollarAmount = availableDollarAmount,
                 DollarRate = dollarRate,
                 CompanyPhoneNumbers = phoneNumbers,
-                ShowAdminPanel =  admin.Role != "normal"  ? false : true,
+                ShowAdminPanel =  admin.Role.ToLower() != "normal"  ? true : false,
                 CompanyAccounts = accounts
             };
 

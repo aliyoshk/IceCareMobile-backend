@@ -22,26 +22,6 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<bool>> AddSupplierAsync(SupplierRequest supplierDto)
         {
-            if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && (supplierDto.Banks == null || !supplierDto.Banks.Any()))
-            {
-                return new Response<bool>
-                {
-                    Success = false,
-                    Message = "Banks information is required when Mode of Payment is Transfer.",
-                    Data = false
-                };
-            }
-
-            if (supplierDto.ModeOfPayment == ModeOfPayment.Cash.ToString() && (supplierDto.Banks != null && supplierDto.Banks.Any()))
-            {
-                return new Response<bool>
-                {
-                    Success = false,
-                    Message = "Banks information must be empty when Mode of Payment is Cash.",
-                    Data = false
-                };
-            }
-
             decimal? total = supplierDto.Banks.Sum(a => a.AmountTransferred);
             var totalNairaAmount = total ?? supplierDto.Amount;
 
@@ -59,10 +39,17 @@ namespace IceCareNigLtd.Core.Services
                 {
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList() ?? new List<BankInfo>()
+                }).ToList() ?? new List<BankInfo>() {  }
             };
 
             await _supplierRepository.AddSupplierAsync(supplier);
+
+
+            var dollar = new DollarAvailable
+            {
+                DollarBalance = supplier.DollarAmount
+            };
+            await _supplierRepository.SaveDollar(dollar);
 
             // Register the bank details with the bank module
             foreach (var bankInfo in supplierDto.Banks)

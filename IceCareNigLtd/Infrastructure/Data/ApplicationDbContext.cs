@@ -3,6 +3,7 @@ using IceCareNigLtd.Core.Entities;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using IceCareNigLtd.Core.Entities.Users;
+using IceCareNigLtd.Core;
 
 namespace IceCareNigLtd.Infrastructure.Data
 {
@@ -19,6 +20,7 @@ namespace IceCareNigLtd.Infrastructure.Data
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Settings> Settings { get; set; }
         public DbSet<CompanyAccounts> CompanyAccounts { get; set; }
+        public DbSet<DollarAvailable> DollarAvailables { get; set; }
 
 
         //Mobile app DBSets (table)

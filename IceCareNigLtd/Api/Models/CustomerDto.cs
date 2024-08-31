@@ -1,5 +1,6 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 
 namespace IceCareNigLtd.Api.Models
 {
@@ -15,7 +16,7 @@ namespace IceCareNigLtd.Api.Models
         public decimal Balance { get; set; }
         public decimal Amount { get; set; }
         public string PaymentCurrency { get; set; }
-        public string PaymentEvidence { get; set; }
+        public List<ReceiptDto> PaymentEvidence { get; set; }
     }
 }
 
