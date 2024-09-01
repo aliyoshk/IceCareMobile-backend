@@ -41,7 +41,6 @@ namespace IceCareNigLtd.Infrastructure.Data
                 .WithOne(b => b.Supplier)
                 .HasForeignKey(b => b.SupplierId);
 
-
             modelBuilder.Entity<Registration>(entity =>
             {
                 entity.HasKey(e => e.Id);

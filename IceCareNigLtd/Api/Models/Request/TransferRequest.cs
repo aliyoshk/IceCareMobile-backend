@@ -4,7 +4,7 @@ using static IceCareNigLtd.Core.Enums.Enums;
 namespace IceCareNigLtd.Api.Models.Request
 {
 	public class TransferRequest
-	{
+    {
         public decimal DollarAmount { get; set; }
 		public string Description { get; set; }
         public List<BankDetails> BankDetails { get; set; } 

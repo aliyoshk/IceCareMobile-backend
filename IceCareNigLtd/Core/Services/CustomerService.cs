@@ -5,7 +5,6 @@ using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
-using IceCareNigLtd.Infrastructure.Repositories;
 using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Core.Services
@@ -33,10 +32,34 @@ namespace IceCareNigLtd.Core.Services
                 {
                     Success = false,
                     Message = "Insufficient dollar to continue request",
-                    Data = true
+                    Data = false
                 };
             }
-            
+            if (customerDto.Amount <= 0 && customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
+            {
+                return new Response<bool>
+                {
+                    Success = false,
+                    Message = "Amount should be greather than 0",
+                    Data = false
+                };
+            }
+            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && customerDto.Banks[0].AmountTransferred <= 0)
+            {
+                return new Response<bool>
+                {
+                    Success = false,
+                    Message = "Banks details cannot be null",
+                    Data = false
+                };
+            }
+
+            if (customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
+            {
+                customerDto.PaymentEvidence = new List<ReceiptDto>();
+                customerDto.Banks = new List<BankInfoDto>();
+            }
+
             decimal? total = customerDto.Banks.Sum(a => a.AmountTransferred);
             var totalNairaAmount = total ?? customerDto.Amount;
 
@@ -52,16 +75,16 @@ namespace IceCareNigLtd.Core.Services
                 Balance = customerDto.Balance,
                 PaymentCurrency = Enum.Parse<PaymentCurrency>(customerDto.PaymentCurrency.ToString()),
                 Channel = Channel.WalkIn,
-                PaymentEvidence = customerDto.PaymentEvidence.Select(e => new CustomerPaymentReceipt
+                PaymentEvidence = customerDto?.PaymentEvidence?.Select(e => new CustomerPaymentReceipt
                 {
                     Reciept = e.Receipt
-                }).ToList(),
+                }).ToList() ?? new List<CustomerPaymentReceipt>(),
                 AccountNumber = "N/A",
-                Banks = customerDto.Banks.Select(b => new CustomerBankInfo
+                Banks = customerDto?.Banks?.Select(b => new CustomerBankInfo
                 {
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList()
+                }).ToList() ?? new List<CustomerBankInfo>()
             };
 
             await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
@@ -114,7 +137,6 @@ namespace IceCareNigLtd.Core.Services
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
                 }).ToList(),
-                
             }).ToList();
 
             var totalCustomers = customerDtos.Count();

@@ -36,6 +36,62 @@ namespace IceCareNigLtd.Core.Services.Users
             _supplierRepository = supplierRepository;
         }
 
+        public async Task<Response<LoginResponse>> LoginUserAsync(LoginDto loginDto)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(loginDto.Email);
+            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
+            // Get current Dollar Rate
+            var dollarRate = await _settingsRepository.GetDollarRateAsync();
+            var companyPhone = await _settingsRepository.GetCompanyPhoneNumbersAsync();
+            var companyAccounts = await _settingsRepository.GetCompanyAccountsAsync();
+
+            if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+                return new Response<LoginResponse> { Success = false, Message = "Login details cannot be empty" };
+
+            if (user == null || !_passwordHasher.VerifyPassword(user.Password, loginDto.Password))
+            {
+                return new Response<LoginResponse>
+                {
+                    Success = false,
+                    Message = "Invalid email or password."
+                };
+            }
+
+            if (user.Status != "Approved")
+            {
+                return new Response<LoginResponse>
+                {
+                    Success = false,
+                    Message = "User not approved by admin."
+                };
+            }
+
+            var balance = 0.0m;
+            if (customer != null)
+                balance = customer.Balance;
+
+            var userDto = new LoginResponse
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Status = user.Status,
+                AccountNumber = user.AccountNumber,
+                Phone = user.Phone,
+                AccountBalance = balance.ToString(),
+                CompanyNumber = companyPhone,
+                DollarRate = dollarRate,
+                CompanyAccounts = companyAccounts
+            };
+
+            return new Response<LoginResponse>
+            {
+                Success = true,
+                Message = "Login successful.",
+                Data = userDto
+            };
+        }
+
         public async Task<Response<string>> RegisterUserAsync(RegistrationDto registrationDto)
         {
             var existingUser = await _userRepository.GetUserByEmailAsync(registrationDto.Email);
@@ -83,59 +139,6 @@ namespace IceCareNigLtd.Core.Services.Users
                 Success = true,
                 Message = "Success",
                 Data = "User registered successfully.",
-            };
-        }
-
-        public async Task<Response<LoginResponse>> LoginUserAsync(LoginDto loginDto)
-        {
-            var user = await _userRepository.GetUserByEmailAsync(loginDto.Email);
-            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
-            // Get current Dollar Rate
-            var dollarRate = await _settingsRepository.GetDollarRateAsync();
-            var companyPhone = await _settingsRepository.GetCompanyPhoneNumbersAsync();
-            var companyAccounts = await _settingsRepository.GetCompanyAccountsAsync();
-
-            if (user == null || !_passwordHasher.VerifyPassword(user.Password, loginDto.Password))
-            {
-                return new Response<LoginResponse>
-                {
-                    Success = false,
-                    Message = "Invalid email or password."
-                };
-            }
-
-            if (user.Status != "Approved")
-            {
-                return new Response<LoginResponse>
-                {
-                    Success = false,
-                    Message = "User not approved by admin."
-                };
-            }
-
-            var balance = 0.0m;
-            if (customer != null)
-                balance = customer.Balance;
-
-            var userDto = new LoginResponse
-            {
-                Id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
-                Status = user.Status,
-                AccountNumber = user.AccountNumber,
-                Phone = user.Phone,
-                AccountBalance  = balance.ToString(),
-                CompanyNumber = companyPhone,
-                DollarRate = dollarRate,
-                CompanyAccounts = companyAccounts
-            };
-
-            return new Response<LoginResponse>
-            {
-                Success = true,
-                Message = "Login successful.",
-                Data = userDto
             };
         }
 
@@ -207,9 +210,8 @@ namespace IceCareNigLtd.Core.Services.Users
 
             var user = await _userRepository.GetUserByEmailAsync(transferRequest.CustomerEmail);
             if (user == null)
-            {
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
-            }
+
 
             Category transactionCategory = Category.SingleBankPayment;
             if (transferRequest.BankDetails.Count > 1)
@@ -249,7 +251,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 Success = true,
                 Message = "You transfer details has been successfully submitted for admin to verified. " +
                 "You will be notified once the transfer is confirmed.\n\nYou can confirmed the status of " +
-                "your transfer in the dashboard\n"
+                "your transfer in the dashboard\n",
+                Data = true
             };
         }
 
@@ -257,18 +260,17 @@ namespace IceCareNigLtd.Core.Services.Users
         {
             var user = await _userRepository.GetUserByEmailAsync(accountPaymentRequest.CustomerEmail);
             if (user == null)
-            {
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
-            }
+
             var customer = await _customerRepository.GetCustomerByIdAsync(user.Id) ?? await _customerRepository.GetCustomerByEmailAsync(user.Email);
             if (customer == null)
-            {
                 return new Response<bool> { Success = false, Message = "Customer not found", Data = false };
-            }
+
+            if (customer.Balance <= 0)
+                return new Response<bool> { Success = false, Message = "You account balance is 0", Data = false };
+
             if (customer.Balance < accountPaymentRequest.NairaAmount)
-            {
-                return new Response<bool> { Success = false, Message = "Insufficient balance",};
-            }
+                return new Response<bool> { Success = false, Message = "Insufficient account balance", Data = false };
 
             await _userRepository.SubtractTransferAmountAsync(accountPaymentRequest.CustomerEmail, accountPaymentRequest.NairaAmount);
 
@@ -284,11 +286,13 @@ namespace IceCareNigLtd.Core.Services.Users
             };
 
             await _userRepository.AccountPaymentAsync(data);
+
             return new Response<bool>
             {
                 Success = true,
                 Message = "Your request has been successfully submitted for admin to verified. You will be notified once confirmed" +
-                ".\n\nYou can confirmed the status of your transfer in the dashboard\n"
+                ".\n\nYou can confirmed the status of your transfer in the dashboard\n",
+                Data = true
             };
         }
 
@@ -296,14 +300,14 @@ namespace IceCareNigLtd.Core.Services.Users
         {
             var user = await _userRepository.GetUserByEmailAsync(thirdPartyPaymentRequest.CustomerEmail);
             if (user == null)
-            {
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
-            }
+
             var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
             if (customer == null)
-            {
                 return new Response<bool> { Success = false, Message = "Customer not found", Data = false };
-            }
+
+            if (string.IsNullOrEmpty(thirdPartyPaymentRequest.CustomerEmail))
+                return new Response<bool> { Success = false, Message = "Email not passed", Data = false };
 
             var data = new ThirdPartyPayment
             {
@@ -319,10 +323,12 @@ namespace IceCareNigLtd.Core.Services.Users
             };
 
             await _userRepository.ThirdPartyPaymentAsync(data);
+
             return new Response<bool>
             {
                 Success = true,
-                Message = " Your transfer details has been successful submitted\nYou’ll be notified once the transfer has been made."
+                Message = " Your transfer details has been successful submitted\nYou’ll be notified once the transfer has been made.",
+                Data = true
             };
         }
 

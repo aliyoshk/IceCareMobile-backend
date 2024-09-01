@@ -10,7 +10,7 @@ namespace IceCareNigLtd.Core.Entities
         public string PhoneNumber { get; set; }
         public DateTime Date { get; set; }
         public ModeOfPayment ModeOfPayment { get; set; }
-        public ICollection<BankInfo> Banks { get; set; } = new List<BankInfo>();
+        public ICollection<BankInfo>? Banks { get; set; } = new List<BankInfo>();
         public decimal DollarRate { get; set; }
         public decimal DollarAmount { get; set; }
         public decimal TotalNairaAmount { get; set; }

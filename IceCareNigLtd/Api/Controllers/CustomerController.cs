@@ -45,7 +45,7 @@ namespace IceCareNigLtd.Api.Controllers
                 { nameof(customerDto.DollarAmount), customerDto.DollarAmount.ToString() },
                 { nameof(customerDto.DollarRate), customerDto.DollarRate.ToString() },
                 { nameof(customerDto.PaymentCurrency), customerDto.PaymentCurrency },
-                { nameof(customerDto.Balance), customerDto.Balance.ToString() }
+                { nameof(customerDto.Balance), customerDto.Balance.ToString() },
             };
             foreach (var field in requiredFields)
             {
@@ -58,16 +58,6 @@ namespace IceCareNigLtd.Api.Controllers
                         Errors = new List<string> { "Invalid input." }
                     });
                 }
-            }
-
-            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && customerDto.Banks[0].AmountTransferred <= 0)
-            {
-                return BadRequest(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Banks details cannot be null",
-                    Errors = new List<string> { "Invalid input." }
-                });
             }
 
             var response = await _customerService.AddCustomerAsync(customerDto);

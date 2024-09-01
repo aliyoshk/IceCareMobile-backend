@@ -1,5 +1,6 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Entities;
@@ -22,6 +23,25 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<bool>> AddSupplierAsync(SupplierRequest supplierDto)
         {
+            if (supplierDto.Amount <= 0 && supplierDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
+            {
+                return new Response<bool>
+                {
+                    Success = false,
+                    Message = "Amount should be greather than 0",
+                    Data = false
+                };
+            }
+            if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && supplierDto.Banks[0].AmountTransferred <= 0)
+            {
+                return new Response<bool>
+                {
+                    Success = false,
+                    Message = "Banks details cannot be null",
+                    Data = false
+                };
+            }
+
             decimal? total = supplierDto.Banks.Sum(a => a.AmountTransferred);
             var totalNairaAmount = total ?? supplierDto.Amount;
 
@@ -39,7 +59,7 @@ namespace IceCareNigLtd.Core.Services
                 {
                     BankName = b.BankName,
                     AmountTransferred = b.AmountTransferred,
-                }).ToList() ?? new List<BankInfo>() {  }
+                }).ToList() ?? null
             };
 
             await _supplierRepository.AddSupplierAsync(supplier);

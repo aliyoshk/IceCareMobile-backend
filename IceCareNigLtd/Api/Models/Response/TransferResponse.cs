@@ -5,7 +5,7 @@ using static IceCareNigLtd.Core.Enums.Enums;
 namespace IceCareNigLtd.Api.Models.Response
 {
 	public class TransferResponse
-	{
+    {
         public int Id { get; set; }
         public decimal DollarAmount { get; set; }
         public string Description { get; set; }
