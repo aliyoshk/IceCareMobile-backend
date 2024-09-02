@@ -27,6 +27,8 @@ namespace IceCareNigLtd.Core.Interfaces
         Task<Response<List<TransferResponse>>> GetApprovedTransferAsync();
         Task<Response<string>> ConfirmTransferAsync(ConfirmationRequest request, string adminName = null);
         Task<Response<List<TransferResponse>>> GetUsersByTransferStatusAsync(string status);
+        Task<Response<List<ThirdPartyPaymentResponse>>> GetThirdPartyTransfer();
+        Task<Response<string>> ThirdPartyTransferCompleted(int id);
     }
 }
 

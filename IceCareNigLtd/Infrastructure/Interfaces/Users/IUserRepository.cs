@@ -1,6 +1,8 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
+using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Entities.Users;
 
@@ -29,6 +31,10 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task ThirdPartyPaymentAsync(ThirdPartyPayment thirdPartyPayment);
         Task SubtractTransferAmountAsync(string email, decimal amount);
         Task DeleteCustomerTransferRecordAsync(int userId);
+
+        Task<List<ThirdPartyPayment>> GetThirdPartyTransfers();
+        Task<ThirdPartyPayment> GetThirdPartyPaymentById(int id);
+        Task ThirdPartyTransferCompleted(ThirdPartyPayment thirdPartyPayment);
     }
 }
 

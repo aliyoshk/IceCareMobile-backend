@@ -319,7 +319,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 CustomerAccount = customer.AccountNumber,
                 Balance = customer.Balance,
                 CustomerName = customer.Name,
-                Channel = Channel.WalkIn
+                Channel = Channel.WalkIn,
+                Status = "Pending"
             };
 
             await _userRepository.ThirdPartyPaymentAsync(data);

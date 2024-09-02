@@ -323,6 +323,48 @@ namespace IceCareNigLtd.Api.Controllers
 
             return Ok(result);
         }
+
+
+        [HttpGet]
+        [Authorize]
+        [Route("GetThirdPartyTransfers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetThirdPartyTransfers()
+        {
+            var result = await _adminService.GetThirdPartyTransfer();
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("CompleteThirdPartyTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ThirdPartyTransferCompleted(int id)
+        {
+            var result = await _adminService.ThirdPartyTransferCompleted(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to approved transfer." }
+                });
+            }
+
+            return Ok(result);
+        }
     }
 }
 

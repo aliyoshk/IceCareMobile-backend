@@ -172,6 +172,16 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<List<ThirdPartyPayment>> GetThirdPartyTransfers() => await _context.ThirdPartyPayments.ToListAsync();
+
+        public async Task<ThirdPartyPayment> GetThirdPartyPaymentById(int id) => await _context.ThirdPartyPayments.FindAsync(id);
+
+        public async Task ThirdPartyTransferCompleted(ThirdPartyPayment thirdPartyPayment)
+        {
+            _context.ThirdPartyPayments.Update(thirdPartyPayment);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 

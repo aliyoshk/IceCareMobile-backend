@@ -387,5 +387,47 @@ namespace IceCareNigLtd.Core.Services
 
             return new Response<List<TransferResponse>> { Success = true, Data = details };
         }
+
+        public async Task<Response<List<ThirdPartyPaymentResponse>>> GetThirdPartyTransfer()
+        {
+            var transfer = await _userRepository.GetThirdPartyTransfers();
+            var transferDtos = transfer.Select(t => new ThirdPartyPaymentResponse
+            {
+                Description = t.Description,
+                AccountName = t.AccountName,
+                AccountNumber = t.AccountNumber,
+                Amount = t.Amount,
+                BankName = t.BankName,
+                Status = t.Status,
+                CustomerAccount = t.CustomerAccount,
+                Balance = t.Balance,
+                Channel = t.Channel.ToString(),
+                CustomerName = t.CustomerName
+            }).ToList();
+
+            return new Response<List<ThirdPartyPaymentResponse>>
+            {
+                Success = true,
+                Message = "Success",
+                Data = transferDtos
+            };
+        }
+
+        public async Task<Response<string>> ThirdPartyTransferCompleted(int id)
+        {
+            var transfer = await _userRepository.GetThirdPartyPaymentById(id);
+            if (transfer == null)
+                return new Response<string> { Success = false, Message = "Value not found.", Data = "Value not found." };
+
+            transfer.Status = "Completed";
+            await _userRepository.ThirdPartyTransferCompleted(transfer);
+
+            return new Response<string>
+            {
+                Success = true,
+                Message = "Success",
+                Data = "User transfer has been confirmed"
+            };
+        }
     }
 }

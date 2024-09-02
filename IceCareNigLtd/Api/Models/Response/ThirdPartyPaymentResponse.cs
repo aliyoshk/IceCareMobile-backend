@@ -1,9 +1,7 @@
 ﻿using System;
-using static IceCareNigLtd.Core.Enums.Enums;
-
-namespace IceCareNigLtd.Core.Entities.Users
+namespace IceCareNigLtd.Api.Models.Response
 {
-	public class ThirdPartyPayment
+	public class ThirdPartyPaymentResponse
 	{
         public int Id { get; set; }
         public decimal Amount { get; set; }
@@ -14,7 +12,7 @@ namespace IceCareNigLtd.Core.Entities.Users
         public string CustomerName { get; set; }
         public string CustomerAccount { get; set; }
         public decimal Balance { get; set; }
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public string Status { get; set; }
     }
 }
