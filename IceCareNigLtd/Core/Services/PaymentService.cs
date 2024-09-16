@@ -20,8 +20,7 @@ namespace IceCareNigLtd.Core.Services
             var payment = new Payment
             {
                 CustomerName = paymentDto.CustomerName,
-                Date = paymentDto.Date,
-                ModeOfPayment = paymentDto.ModeOfPayment,
+                Date = DateTime.UtcNow,
                 DollarAmount = paymentDto.DollarAmount
             };
 
@@ -33,11 +32,21 @@ namespace IceCareNigLtd.Core.Services
         public async Task<Response<List<PaymentDto>>> GetPaymentsAsync()
         {
             var payments = await _paymentRepository.GetPaymentsAsync();
+
+            if (!payments.Any())
+            {
+                return new Response<List<PaymentDto>>
+                {
+                    Success = false,
+                    Message = "Payment record is empty",
+                };
+            }
+
             var paymentDtos = payments.Select(p => new PaymentDto
             {
+                Id = p.Id,
                 CustomerName = p.CustomerName,
                 Date = p.Date,
-                ModeOfPayment = p.ModeOfPayment,
                 DollarAmount = p.DollarAmount
             }).ToList();
 

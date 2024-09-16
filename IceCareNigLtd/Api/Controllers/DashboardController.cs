@@ -24,7 +24,7 @@ namespace IceCareNigLtd.Api.Controllers
         }
 
         [HttpGet]
-        [Route("GetData")]
+        [Route("GetDashboardData")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -42,25 +42,36 @@ namespace IceCareNigLtd.Api.Controllers
             {
                 return BadRequest(response.Message);
             }
-            return Ok(response.Data);
+            return Ok(response);
         }
+
 
         [HttpPost]
         [Route("UpdateDollarRate")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateDollarRate([FromBody] decimal newDollarRate)
+        public async Task<IActionResult> UpdateDollarRate([FromBody] UpdateDollarDto updateDollarDto)
         {
-            if (newDollarRate <= 0)
+            if (updateDollarDto == null)
             {
-                return BadRequest("Invalid dollar rate.");
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Dollar data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
             }
 
-            var result = await _dashboardService.UpdateDollarRateAsync(newDollarRate);
+            var result = await _dashboardService.UpdateDollarRateAsync(updateDollarDto);
             if (!result.Success)
             {
-                return BadRequest(result.Message);
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to update dollar." }
+                });
             }
 
             return Ok(result);

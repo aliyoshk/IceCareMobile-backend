@@ -34,7 +34,6 @@ namespace IceCareNigLtd.Api.Controllers
             var requiredFields = new Dictionary<string, string>
             {
                 { nameof(paymentDto.CustomerName), paymentDto.CustomerName },
-                { nameof(paymentDto.ModeOfPayment), paymentDto.ModeOfPayment},
                 { nameof(paymentDto.DollarAmount), paymentDto.DollarAmount.ToString() }
             };
             foreach (var field in requiredFields)
@@ -82,8 +81,8 @@ namespace IceCareNigLtd.Api.Controllers
                 return NotFound(new ErrorResponse
                 {
                     Success = false,
-                    Message = "No payments found.",
-                    Errors = new List<string> { "Payment list is empty." }
+                    Message = "Payment list is empty. ",
+                    Errors = new List<string> { "No payments found." }
                 });
             }
 

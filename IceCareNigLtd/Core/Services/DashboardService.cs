@@ -144,23 +144,22 @@ namespace IceCareNigLtd.Core.Services
             };
         }
 
-        public async Task<Response<bool>> UpdateDollarRateAsync(decimal newDollarRate)
+        public async Task<Response<string>> UpdateDollarRateAsync(UpdateDollarDto updateDollarDto)
         {
-            var result = await _settingsRepository.UpdateDollarRateAsync(newDollarRate);
+            var result = await _settingsRepository.UpdateDollarRateAsync(updateDollarDto.NewDollarRate);
             if (!result)
             {
-                return new Response<bool>
+                return new Response<string>
                 {
                     Success = false,
                     Message = "Failed to update dollar rate"
                 };
             }
 
-            return new Response<bool>
+            return new Response<string>
             {
                 Success = true,
                 Message = "Dollar rate updated successfully",
-                Data = true
             };
         }
 
