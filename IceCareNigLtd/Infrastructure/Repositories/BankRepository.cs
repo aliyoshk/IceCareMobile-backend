@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Net.NetworkInformation;
+using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Core.Entities;
+using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Infrastructure.Repositories
 {
@@ -24,6 +28,12 @@ namespace IceCareNigLtd.Infrastructure.Repositories
         public async Task<List<Bank>> GetBanksAsync()
         {
             return await _context.Banks.ToListAsync();
+        }
+
+        public async Task<List<Bank>> GetBankRecordByNameAsync(string bankName)
+        {
+            var parsedBank = Enum.Parse<BankName>(bankName.ToString());
+            return await _context.Banks.Where(b => b.BankName == parsedBank).ToListAsync() ?? null;
         }
     }
 }

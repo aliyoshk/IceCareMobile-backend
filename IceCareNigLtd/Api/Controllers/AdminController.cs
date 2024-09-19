@@ -3,6 +3,7 @@ using System.Security.Claims;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Core.Utils;
@@ -28,6 +29,9 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("AdminLogin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(typeof(Response<AdminLoginDto>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> Login([FromBody] AdminLoginDto loginDto)
         {
             if (loginDto == null)
@@ -61,6 +65,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<List<AdminDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> AddAdmin([FromBody] AdminDto adminDto)
         {
             if (adminDto == null)
@@ -123,6 +129,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<AdminDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetAdmins()
         {
             var admins = await _adminService.GetAdminsAsync();
@@ -173,6 +181,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [Route("PendingRegistrations")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Response<List<UserDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetPendingRegistrations()
         {
             var pendingUsers = await _adminService.GetUsersByStatusAsync("Pending");
@@ -194,6 +204,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("ChangeUserStatus")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<ChangeUserStatusRequest>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> ChangeUserStatus([FromBody] ChangeUserStatusRequest request)
         {
             // Get admin's name from the current user
@@ -221,6 +233,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("ApprovedUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<UserDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetApprovedUsers()
         {
             var result = await _adminService.GetApprovedUsersAsync();
@@ -242,6 +256,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("RejectedUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<UserDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetRejectedUsers()
         {
             var result = await _adminService.GetRejectedUsersAsync();
@@ -264,6 +280,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("GetPendingTransfer")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<TransferResponse>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetPendingTransfer()
         {
             var result = await _adminService.GetUsersByTransferStatusAsync("Pending");
@@ -284,6 +302,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("GetApprovedTransfer")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<TransferResponse>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetApprovedTransfer()
         {
             var result = await _adminService.GetUsersByTransferStatusAsync("Confirmed");
@@ -304,6 +324,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("ConfirmTransfer")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<ConfirmationRequest>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> ConfirmTransfer([FromBody] ConfirmationRequest request)
         {
             // Get admin's name from the current user
@@ -330,6 +352,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("GetThirdPartyTransfers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<ThirdPartyPaymentResponse>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetThirdPartyTransfers()
         {
             var result = await _adminService.GetThirdPartyTransfer();

@@ -150,16 +150,12 @@ namespace IceCareNigLtd.Core.Services
                     user.Status = "Approved";
                     user.AccountNumber = accountNumber;
                     user.ReviewedBy = adminName;
-                    user.Reason = request.ActionUserDto.Reason;
+                    user.Reason = "";
                     await _userRepository.MoveToApprovedAsync(user);
                     break;
 
                 case ReviewAction.Reject:
                     user.Status = "Rejected";
-                    if (request.ActionUserDto != null)
-                    {
-                        user.Reason = request.ActionUserDto.Reason;
-                    }
                     user.ReviewedBy = adminName;
                     await _userRepository.MoveToRejectedAsync(user);
                     break;
@@ -228,9 +224,12 @@ namespace IceCareNigLtd.Core.Services
             var pendingTransfersDtos = pendingTransfers.Select(users => new TransferResponse
             {
                 Id = users.Id,
+                CustomerName = users.CustomerName,
+                Balance = users.Balance,
+                TransferReference = users.TransferReference,
                 Status = users.Status,
                 ApproverName = users.Approver,
-                Category = users.Category,
+                Category = users.Category.ToString(),
                 Description = users.Description,
                 DollarRate = users.DollarRate,
                 DollarAmount = users.DollarAmount,
@@ -261,14 +260,17 @@ namespace IceCareNigLtd.Core.Services
             var confirmedTransfersDtos = confirmedTransfers.Select(users => new TransferResponse
             {
                 Id = users.Id,
+                CustomerName = users.CustomerName,
                 Status = users.Status,
                 ApproverName = users.Approver,
-                Category = users.Category,
+                Category = users.Category.ToString(),
                 Description = users.Description,
                 DollarRate = users.DollarRate,
                 DollarAmount = users.DollarAmount,
                 TransactionDate = users.TransactionDate,
                 CustomerEmail = users.Email,
+                Balance = users.Balance,
+                TransferReference = users.TransferReference,
                 BankDetails = users.BankDetails.Select(b => new BankDetails
                 {
                     BankName = b.BankName,
@@ -366,9 +368,12 @@ namespace IceCareNigLtd.Core.Services
             var details = users.Select(user => new TransferResponse
             {
                 Id = user.Id,
+                CustomerName = user.CustomerName,
+                Balance = user.Balance,
+                TransferReference = user.TransferReference,
                 ApproverName = user.Approver,
                 DollarAmount = user.DollarAmount,
-                Category = user.Category,
+                Category = user.Category.ToString(),
                 CustomerEmail = user.Email,
                 Description = user.Description,
                 Status = user.Status,

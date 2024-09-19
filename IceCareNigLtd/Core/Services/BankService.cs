@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.NetworkInformation;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
@@ -20,11 +21,12 @@ namespace IceCareNigLtd.Core.Services
         {
             var bank = new Bank
             {
+                EntityName = bankDto.EntityName,
                 BankName = Enum.Parse<BankName>(bankDto.BankName.ToString()),
                 Date = DateTime.Now,
-                PersonType = Enum.Parse<PersonType>(bankDto.PersonType.ToString()),
-                ExpenseType = Enum.Parse<CreditType>(bankDto.PersonType.ToString()),
-                Amount = bankDto.Amount
+                PersonType = Enum.Parse<PersonType>(bankDto.PersonType),
+                ExpenseType = Enum.Parse<CreditType>(bankDto.ExpenseType),
+                Amount = bankDto.Amount,
             };
 
             await _bankRepository.AddBankAsync(bank);
@@ -37,6 +39,27 @@ namespace IceCareNigLtd.Core.Services
             var banks = await _bankRepository.GetBanksAsync();
             var bankDtos = banks.Select(b => new BankDto
             {
+                Id = b.Id,
+                EntityName = b.EntityName,
+                BankName = b.BankName.ToString(),
+                Date = DateTime.Now,
+                PersonType = b.PersonType.ToString(),
+                ExpenseType = b.ExpenseType.ToString(),
+                Amount = b.Amount
+            }).ToList();
+
+            return new Response<List<BankDto>> { Success = true, Message = "Banks retrieved successfully", Data = bankDtos };
+        }
+
+
+        public async Task<Response<List<BankDto>>> GetBankRecordByNameAsync(string bankName)
+        {
+            var banks = await _bankRepository.GetBankRecordByNameAsync(bankName);
+
+            var bankDtos = banks.Select(b => new BankDto
+            {
+                Id = b.Id,
+                EntityName = b.EntityName,
                 BankName = b.BankName.ToString(),
                 Date = DateTime.Now,
                 PersonType = b.PersonType.ToString(),

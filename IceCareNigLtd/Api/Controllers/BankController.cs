@@ -91,6 +91,34 @@ namespace IceCareNigLtd.Api.Controllers
                 Data = banks.Data
             });
         }
+
+
+        [HttpGet]
+        [Route("GetBanksRecordByName")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetBankRecordByName(string bankName)
+        {
+            var banks = await _bankService.GetBankRecordByNameAsync(bankName);
+            if (banks == null || banks.Data == null || !banks.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No bank records found.",
+                    Errors = new List<string> { "Bank records list is empty." }
+                });
+            }
+
+            return Ok(new Response<IEnumerable<BankDto>>
+            {
+                Success = true,
+                Message = "Bank records retrieved successfully.",
+                Data = banks.Data
+            });
+        }
+
     }
 }
 

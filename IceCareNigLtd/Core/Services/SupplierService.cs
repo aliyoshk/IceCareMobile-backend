@@ -32,6 +32,9 @@ namespace IceCareNigLtd.Core.Services
                     Data = false
                 };
             }
+            else
+                supplierDto.Banks = new List<BankInfoDto>();
+
             if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && supplierDto.Banks[0].AmountTransferred <= 0)
             {
                 return new Response<bool>
@@ -57,7 +60,7 @@ namespace IceCareNigLtd.Core.Services
                 Channel = Channel.WalkIn,
                 Banks = supplierDto.Banks?.Select(b => new BankInfo
                 {
-                    BankName = b.BankName,
+                    BankName = b.BankName ?? "",
                     AmountTransferred = b.AmountTransferred,
                 }).ToList() ?? null
             };
@@ -76,6 +79,7 @@ namespace IceCareNigLtd.Core.Services
             {
                 var bank = new Bank
                 {
+                    EntityName = supplierDto.Name,
                     BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
                     Date = DateTime.UtcNow,
                     PersonType = PersonType.Supplier,

@@ -44,6 +44,11 @@ namespace IceCareNigLtd.Core.Services
                     Data = false
                 };
             }
+            else
+            {
+                customerDto.PaymentEvidence = new List<ReceiptDto>();
+                customerDto.Banks = new List<BankInfoDto>();
+            }
             if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && customerDto.Banks[0].AmountTransferred <= 0)
             {
                 return new Response<bool>
@@ -52,12 +57,6 @@ namespace IceCareNigLtd.Core.Services
                     Message = "Banks details cannot be null",
                     Data = false
                 };
-            }
-
-            if (customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
-            {
-                customerDto.PaymentEvidence = new List<ReceiptDto>();
-                customerDto.Banks = new List<BankInfoDto>();
             }
 
             decimal? total = customerDto.Banks.Sum(a => a.AmountTransferred);
@@ -95,6 +94,7 @@ namespace IceCareNigLtd.Core.Services
             {
                 var bank = new Bank
                 {
+                    EntityName = customerDto.Name,
                     BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
                     Date = DateTime.UtcNow,
                     PersonType = PersonType.Customer,

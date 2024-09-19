@@ -6,6 +6,7 @@ namespace IceCareNigLtd.Core.Entities
     public class Bank
     {
         public int Id { get; set; }
+        public string EntityName { get; set; }
         public BankName BankName { get; set; }
         public DateTime Date { get; set; }
         public PersonType PersonType { get; set; } // Credit, Debit

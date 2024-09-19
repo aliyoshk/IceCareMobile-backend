@@ -1,5 +1,6 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Entities;
 
 namespace IceCareNigLtd.Core.Interfaces
@@ -8,6 +9,7 @@ namespace IceCareNigLtd.Core.Interfaces
     {
         Task<Response<BankDto>> AddBankAsync(BankDto bankDto);
         Task<Response<List<BankDto>>> GetBanksAsync();
+        Task<Response<List<BankDto>>> GetBankRecordByNameAsync(string bankName);
     }
 }
 
