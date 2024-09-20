@@ -233,6 +233,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 Status = "Pending",
                 Approver = user.ReviewedBy,
                 Category = transactionCategory,
+                PhoneNumber = user.Phone, 
                 BankDetails = transferRequest.BankDetails.Select(b => new TransferBank
                 {
                     TransferredAmount = b.TransferredAmount,

@@ -19,6 +19,7 @@ namespace IceCareNigLtd.Core.Entities.Users
         public string Status { get; set; }
         public string Approver { get; set; }
         public Category Category { get; set; }
+        public string PhoneNumber { get; set; }
 
         public List<TransferBank> BankDetails { get; set; }
         public List<EvidenceOfTransfer> TransferEvidence { get; set; }

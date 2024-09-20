@@ -235,10 +235,10 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = users.DollarAmount,
                 TransactionDate = users.TransactionDate,
                 CustomerEmail = users.Email,
-                BankDetails = users.BankDetails.Select(b => new BankDetails
+                BankDetails = users.BankDetails.Select(b => new BankInfoDto
                 {
-                    BankName = b.BankName,
-                    TransferredAmount = b.TransferredAmount
+                    BankName = b.BankName.ToString(),
+                    AmountTransferred = b.TransferredAmount
                 }).ToList(),
                 TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
                 {
@@ -271,10 +271,10 @@ namespace IceCareNigLtd.Core.Services
                 CustomerEmail = users.Email,
                 Balance = users.Balance,
                 TransferReference = users.TransferReference,
-                BankDetails = users.BankDetails.Select(b => new BankDetails
+                BankDetails = users.BankDetails.Select(b => new BankInfoDto
                 {
-                    BankName = b.BankName,
-                    TransferredAmount = b.TransferredAmount
+                    BankName = b.BankName.ToString(),
+                    AmountTransferred = b.TransferredAmount
                 }).ToList(),
                 TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
                 {
@@ -297,6 +297,8 @@ namespace IceCareNigLtd.Core.Services
                 return new Response<string> { Success = false, Message = "User not found.", Data = "User not found." };
             if (user.Email != request.Email)
                 return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
+            if (user.Id != request.Id)
+                return new Response<string> { Success = false, Message = "Id not found", Data = "Email not found." };
             var userRecord = await _userRepository.GetUserByEmailAsync(user.Email);
 
             if (request.Confirmed)
@@ -379,15 +381,16 @@ namespace IceCareNigLtd.Core.Services
                 Status = user.Status,
                 DollarRate = user.DollarRate,
                 TransactionDate = user.TransactionDate,
+                PhoneNumber = user.PhoneNumber,
                 TransferEvidence = user.TransferEvidence?.Select(e => new TransferEvidence
                 {
                     Receipts = e.Receipts
                 }).ToList() ?? new List<TransferEvidence>(),
-                BankDetails = user.BankDetails?.Select(b => new BankDetails
+                BankDetails = user.BankDetails?.Select(b => new BankInfoDto
                 {
-                    BankName = b.BankName,
-                    TransferredAmount = b.TransferredAmount
-                }).ToList() ?? new List<BankDetails>(),
+                    BankName = b.BankName.ToString(),
+                    AmountTransferred = b.TransferredAmount
+                }).ToList() ?? new List<BankInfoDto>(),
             }).ToList();
 
             return new Response<List<TransferResponse>> { Success = true, Data = details };
