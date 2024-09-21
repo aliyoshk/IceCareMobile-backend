@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
@@ -205,7 +206,14 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<bool>> AddCompanyAccountAsyn(CompanyAccountsDto companyAccountsDto)
         {
-           
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync();
+
+            foreach (var item in accounts)
+            {
+                if (item.BankName == companyAccountsDto.BankName && item.AccountNumber == companyAccountsDto.AccountNumber)
+                    return new Response<bool> { Success = false, Message = "Banks already exist in the system" };
+            }
+
             var data = new CompanyAccounts
             {
                 AccountName = companyAccountsDto.AccountName,

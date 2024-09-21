@@ -16,7 +16,7 @@ namespace IceCareNigLtd.Api.Models.Request
 
     public class BankDetails
     {
-        public BankName BankName { get; set; }
+        public string BankName { get; set; }
         public decimal TransferredAmount { get; set; }
     }
 

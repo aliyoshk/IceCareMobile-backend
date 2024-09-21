@@ -3,13 +3,6 @@ namespace IceCareNigLtd.Core.Enums
 {
 	public class Enums
 	{
-        public enum BankName
-        {
-            UnionBank,
-            WemaBank,
-            UBA
-        }
-
         public enum PersonType
         {
             Supplier,

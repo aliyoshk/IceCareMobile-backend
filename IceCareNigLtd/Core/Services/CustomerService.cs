@@ -2,9 +2,11 @@
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
+using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Infrastructure.Repositories;
 using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Core.Services
@@ -14,12 +16,14 @@ namespace IceCareNigLtd.Core.Services
         private readonly ICustomerRepository _customerRepository;
         private readonly IBankRepository _bankRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly ISettingsRepository _settingsRepository;
 
-        public CustomerService(ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository)
+        public CustomerService(ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository, ISettingsRepository settingsRepository)
         {
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
             _supplierRepository = supplierRepository;
+            _settingsRepository = settingsRepository;
         }
 
         public async Task<Response<bool>> AddCustomerAsync(CustomerDto customerDto)
@@ -44,20 +48,34 @@ namespace IceCareNigLtd.Core.Services
                     Data = false
                 };
             }
-            else
+
+            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString())
             {
-                customerDto.PaymentEvidence = new List<ReceiptDto>();
-                customerDto.Banks = new List<BankInfoDto>();
-            }
-            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString() && customerDto.Banks[0].AmountTransferred <= 0)
-            {
-                return new Response<bool>
+                foreach (var mode in customerDto.Banks)
                 {
-                    Success = false,
-                    Message = "Banks details cannot be null",
-                    Data = false
-                };
+                    if (mode.AmountTransferred <= 0 || mode.BankName == "")
+                        return new Response<bool> { Success = false, Message = "All fields cannot be empty" };
+                }
             }
+
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync();
+            if (!accounts.Any())
+                return new Response<bool> { Success = false, Message = "No bank record found" };
+
+            var errorMessages = new List<string>();
+            foreach (var bank in customerDto.Banks)
+            {
+                var existingBank = accounts.FirstOrDefault(b => b.BankName == bank.BankName.Replace(" ", ""));
+
+                if (existingBank == null)
+                    errorMessages.Add($"{bank.BankName} doesn't exist in the system");
+
+                if (bank.AmountTransferred <= 0)
+                    errorMessages.Add($"The amount transferred for {bank.BankName} can't be 0 or less");
+            }
+
+            if (errorMessages.Any())
+                return new Response<bool> { Success = false, Message = string.Join("; ", errorMessages) };
 
             decimal? total = customerDto.Banks.Sum(a => a.AmountTransferred);
             var totalNairaAmount = total ?? customerDto.Amount;
@@ -95,7 +113,7 @@ namespace IceCareNigLtd.Core.Services
                 var bank = new Bank
                 {
                     EntityName = customerDto.Name,
-                    BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
+                    BankName = bankInfo.BankName,
                     Date = DateTime.UtcNow,
                     PersonType = PersonType.Customer,
                     ExpenseType = CreditType.Credit,

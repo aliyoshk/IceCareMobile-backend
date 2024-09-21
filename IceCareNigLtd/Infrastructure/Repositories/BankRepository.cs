@@ -32,7 +32,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<List<Bank>> GetBankRecordByNameAsync(string bankName)
         {
-            var parsedBank = Enum.Parse<BankName>(bankName.ToString());
+            var parsedBank = bankName.ToString();
             return await _context.Banks.Where(b => b.BankName == parsedBank).ToListAsync() ?? null;
         }
     }

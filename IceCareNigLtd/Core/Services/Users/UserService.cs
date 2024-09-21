@@ -212,6 +212,19 @@ namespace IceCareNigLtd.Core.Services.Users
             if (user == null)
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
 
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync();
+            if (accounts.Any())
+                return new Response<bool> { Success = false, Message = "Company bank(s) detail(s) is/are null" };
+
+            foreach (var item in accounts)
+            {
+                foreach(var bankRequest in transferRequest.BankDetails)
+                {
+                    if (!item.BankName.Contains(bankRequest.BankName))
+                        return new Response<bool> { Success = false, Message = "Banks doesn't exist in the system" };
+                }
+            }
+
 
             Category transactionCategory = Category.SingleBankPayment;
             if (transferRequest.BankDetails.Count > 1)
@@ -237,7 +250,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 BankDetails = transferRequest.BankDetails.Select(b => new TransferBank
                 {
                     TransferredAmount = b.TransferredAmount,
-                    BankName = Enum.Parse<BankName>(b.BankName.ToString()),
+                    BankName = b.BankName.ToString(),
                 }).ToList(),
                 TransferEvidence = transferRequest.TransferEvidence.Select(e => new EvidenceOfTransfer
                 {

@@ -343,7 +343,7 @@ namespace IceCareNigLtd.Core.Services
             {
                 var bank = new Bank
                 {
-                    BankName = Enum.Parse<BankName>(bankInfo.BankName.ToString()),
+                    BankName = bankInfo.BankName.ToString(),
                     Date = DateTime.UtcNow,
                     PersonType = PersonType.Customer,
                     ExpenseType = CreditType.Credit,

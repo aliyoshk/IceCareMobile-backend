@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.NetworkInformation;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
@@ -11,18 +12,31 @@ namespace IceCareNigLtd.Core.Services
     public class BankService : IBankService
     {
         private readonly IBankRepository _bankRepository;
+        private readonly ISettingsRepository _settingsRepository;
 
-        public BankService(IBankRepository bankRepository)
+        public BankService(IBankRepository bankRepository, ISettingsRepository settingsRepository)
         {
             _bankRepository = bankRepository;
+            _settingsRepository = settingsRepository;
         }
 
         public async Task<Response<BankDto>> AddBankAsync(BankDto bankDto)
         {
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync();
+
+            if (!accounts.Any())
+                return new Response<BankDto> { Success = false, Message = "Company bank(s) detail(s) is/are null" };
+
+            foreach(var item in accounts)
+            {
+                if (!item.BankName.Contains(bankDto.BankName))
+                    return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
+            }
+
             var bank = new Bank
             {
                 EntityName = bankDto.EntityName,
-                BankName = Enum.Parse<BankName>(bankDto.BankName.ToString()),
+                BankName = bankDto.BankName.ToString(),
                 Date = DateTime.Now,
                 PersonType = Enum.Parse<PersonType>(bankDto.PersonType),
                 ExpenseType = Enum.Parse<CreditType>(bankDto.ExpenseType),
