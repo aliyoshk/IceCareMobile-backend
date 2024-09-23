@@ -127,6 +127,7 @@ namespace IceCareNigLtd.Core.Services
             // Map suppliers to SupplierRequest objects
             var supplierDtos = suppliers.Select(s => new SupplierRequest
             {
+                Id = s.Id,
                 Name = s.Name,
                 PhoneNumber = s.PhoneNumber,
                 Date = s.Date,
@@ -162,6 +163,12 @@ namespace IceCareNigLtd.Core.Services
                 Message = "Suppliers retrieved successfully",
                 Data = responseDto
             };
+        }
+
+        public async Task<Response<object>> DeleteSupplierAsync(int supplierId)
+        {
+            await _supplierRepository.DeleteSupplierAsync(supplierId);
+            return new Response<object> { Success = true, Message = "Supplier deleted successfully" };
         }
     }
 }

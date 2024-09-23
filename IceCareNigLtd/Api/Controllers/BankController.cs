@@ -2,6 +2,7 @@
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Services;
 using IceCareNigLtd.Core.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -117,6 +118,26 @@ namespace IceCareNigLtd.Api.Controllers
                 Message = "Bank records retrieved successfully.",
                 Data = banks.Data
             });
+        }
+
+        [HttpDelete("DeleteBank/{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteBank(int id)
+        {
+            var result = await _bankService.DeleteBankAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete bank." }
+                });
+            }
+
+            return Ok(result);
         }
 
     }

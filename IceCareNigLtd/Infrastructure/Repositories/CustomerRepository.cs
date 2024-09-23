@@ -50,6 +50,16 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             var totalAmount = await _context.Customers.SumAsync(c => (double)c.TotalNairaAmount);
             return (decimal)totalAmount;
         }
+
+        public async Task DeleteCustomerAsync(int customerId)
+        {
+            var customer = await _context.Customers.FindAsync(customerId);
+            if (customer != null)
+            {
+                _context.Customers.Remove(customer);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
 

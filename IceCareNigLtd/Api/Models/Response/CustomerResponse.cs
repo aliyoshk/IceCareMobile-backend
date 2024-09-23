@@ -13,6 +13,7 @@ namespace IceCareNigLtd.Api.Models.Response
 
     public class CustomerResponseDto
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
         public DateTime Date { get; set; }

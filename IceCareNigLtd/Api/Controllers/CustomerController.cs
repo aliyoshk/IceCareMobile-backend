@@ -3,6 +3,7 @@ using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static IceCareNigLtd.Core.Enums.Enums;
@@ -96,6 +97,26 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
             return Ok(customers.Data);
+        }
+
+        [HttpDelete("DeleteCustomer/{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteCustomer(int id)
+        {
+            var result = await _customerService.DeleteCustomerAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to customer admin." }
+                });
+            }
+
+            return Ok(result);
         }
     }
 }

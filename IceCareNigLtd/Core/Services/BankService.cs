@@ -5,6 +5,7 @@ using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Infrastructure.Repositories;
 using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Core.Services
@@ -94,6 +95,12 @@ namespace IceCareNigLtd.Core.Services
             }).ToList();
 
             return new Response<List<BankDto>> { Success = true, Message = "Banks retrieved successfully", Data = bankDtos };
+        }
+
+        public async Task<Response<object>> DeleteBankAsync(int bankId)
+        {
+            await _bankRepository.DeleteBankAsync(bankId);
+            return new Response<object> { Success = true, Message = "Record deleted successfully" };
         }
     }
 }

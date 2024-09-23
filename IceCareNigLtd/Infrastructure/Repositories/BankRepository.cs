@@ -35,6 +35,16 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             var parsedBank = bankName.ToString();
             return await _context.Banks.Where(b => b.BankName == parsedBank).ToListAsync() ?? null;
         }
+
+        public async Task DeleteBankAsync(int bankId)
+        {
+            var bank = await _context.Banks.FindAsync(bankId);
+            if (bank != null)
+            {
+                _context.Banks.Remove(bank);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
 

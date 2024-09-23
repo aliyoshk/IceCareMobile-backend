@@ -2,6 +2,7 @@
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -64,8 +65,6 @@ namespace IceCareNigLtd.Api.Controllers
             return CreatedAtAction(nameof(GetPayments), new { id = response.Data }, response);
         }
 
-
-
         [HttpGet]
         [Route("GetPaymentsRecord")]
         [Authorize]
@@ -92,6 +91,27 @@ namespace IceCareNigLtd.Api.Controllers
                 Message = "Payments retrieved successfully.",
                 Data = response.Data
             });
+        }
+
+
+        [HttpDelete("DeletePayment/{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeletePayment(int id)
+        {
+            var result = await _paymentService.DeletePaymentAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete record." }
+                });
+            }
+
+            return Ok(result);
         }
     }
 }

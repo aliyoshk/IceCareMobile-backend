@@ -10,11 +10,10 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
         Task<List<Supplier>> GetSuppliersAsync();
         Task<int> GetSuppliersCountAsync();
         Task<decimal> GetTotalTransferredAmountAsync();
-
-
         Task<bool> SaveDollar(DollarAvailable dollarAvailable);
         Task<decimal> GetTotalDollarAmountAsync();
         Task SubtractDollarAmountAsync(decimal amount);
+        Task DeleteSupplierAsync(int supplierId);
     }
 }
 

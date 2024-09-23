@@ -3,6 +3,7 @@ using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Infrastructure.Repositories;
 
 namespace IceCareNigLtd.Core.Services
 {
@@ -27,6 +28,12 @@ namespace IceCareNigLtd.Core.Services
             await _paymentRepository.AddPaymentAsync(payment);
 
             return new Response<PaymentDto> { Success = true, Message = "Payment added successfully", Data = paymentDto };
+        }
+
+        public async Task<Response<object>> DeletePaymentAsync(int paymentId)
+        {
+            await _paymentRepository.DeletePaymentAsync(paymentId);
+            return new Response<object> { Success = true, Message = "Record deleted successfully" };
         }
 
         public async Task<Response<List<PaymentDto>>> GetPaymentsAsync()

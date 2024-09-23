@@ -4,6 +4,7 @@ using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static IceCareNigLtd.Core.Enums.Enums;
@@ -70,7 +71,6 @@ namespace IceCareNigLtd.Api.Controllers
         }
 
 
-
         [HttpGet]
         [Route("GetSuppliersRecord")]
         [Authorize]
@@ -90,6 +90,26 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
             return Ok(response.Data);
+        }
+
+        [HttpDelete("DeleteSupplier/{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteSupplier(int id)
+        {
+            var result = await _supplierService.DeleteSupplierAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete supplier." }
+                });
+            }
+
+            return Ok(result);
         }
     }
 }

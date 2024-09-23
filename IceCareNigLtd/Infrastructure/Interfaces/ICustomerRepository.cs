@@ -13,6 +13,7 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
         Task<Customer> GetCustomerByEmailAsync(string phone);
         Task<int> GetCustomersCountAsync();
         Task<decimal> GetTotalTransferredAmountAsync();
+        Task DeleteCustomerAsync(int customerId);
     }
 }
 

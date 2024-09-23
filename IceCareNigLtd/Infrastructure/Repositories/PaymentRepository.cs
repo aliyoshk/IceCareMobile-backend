@@ -21,6 +21,16 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task DeletePaymentAsync(int paymentId)
+        {
+            var payment = await _context.Payments.FindAsync(paymentId);
+            if (payment != null)
+            {
+                _context.Payments.Remove(payment);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task<List<Payment>> GetPaymentsAsync()
         {
             return await _context.Payments.ToListAsync();

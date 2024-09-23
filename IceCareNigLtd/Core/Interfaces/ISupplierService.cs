@@ -9,6 +9,7 @@ namespace IceCareNigLtd.Core.Interfaces
     {
         Task<Response<bool>> AddSupplierAsync(SupplierRequest supplierDto);
         Task<Response<SupplierResponse>> GetSuppliersAsync();
+        Task<Response<object>> DeleteSupplierAsync(int supplierId);
     }
 }
 

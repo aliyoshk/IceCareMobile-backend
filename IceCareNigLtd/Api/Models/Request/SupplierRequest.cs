@@ -3,6 +3,7 @@ namespace IceCareNigLtd.Api.Models.Request
 {
 	public class SupplierRequest
 	{
+        public int Id { get; set; }
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
         public DateTime Date { get; set; }

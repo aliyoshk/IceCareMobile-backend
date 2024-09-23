@@ -141,6 +141,7 @@ namespace IceCareNigLtd.Core.Services
             var customers = await _customerRepository.GetCustomersAsync();
             var customerDtos = customers.Select(c => new CustomerResponseDto
             {
+                Id = c.Id,
                 Name = c.Name,
                 PhoneNumber = c.PhoneNumber,
                 Date = c.Date,
@@ -180,6 +181,13 @@ namespace IceCareNigLtd.Core.Services
                 Message = "Customers retrieved successfully",
                 Data = response
             };
+        }
+
+
+        public async Task<Response<object>> DeleteCustomerAsync(int customerId)
+        {
+            await _customerRepository.DeleteCustomerAsync(customerId);
+            return new Response<object> { Success = true, Message = "Customer deleted successfully" };
         }
     }
 }

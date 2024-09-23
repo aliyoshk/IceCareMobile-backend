@@ -10,6 +10,7 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
         Task AddBankAsync(Bank bank);
         Task<List<Bank>> GetBanksAsync();
         Task<List<Bank>> GetBankRecordByNameAsync(string bankName);
+        Task DeleteBankAsync(int bankId);
     }
 }
 

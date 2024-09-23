@@ -84,6 +84,16 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteSupplierAsync(int supplierId)
+        {
+            var supplier = await _context.Suppliers.FindAsync(supplierId);
+            if (supplier != null)
+            {
+                _context.Suppliers.Remove(supplier);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
 

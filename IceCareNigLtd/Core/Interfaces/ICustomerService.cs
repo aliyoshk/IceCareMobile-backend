@@ -8,6 +8,7 @@ namespace IceCareNigLtd.Core.Interfaces
     {
         Task<Response<bool>> AddCustomerAsync(CustomerDto customerDto);
         Task<Response<CustomerResponse>> GetCustomersAsync();
+        Task<Response<object>> DeleteCustomerAsync(int customerId);
     }
 }
 
