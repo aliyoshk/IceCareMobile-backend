@@ -28,6 +28,7 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<List<DashboardDto>>), 200)]
         //public async Task<IActionResult> GetDashboardData([FromQuery] string adminUsername)
         public async Task<IActionResult> GetDashboardData()
         {

@@ -155,8 +155,8 @@ namespace IceCareNigLtd.Api.Controllers
 
 
         [HttpDelete("DeleteAdmin/{id}")]
-        [Authorize(Policy = "AdminOnly")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        //[Authorize(Policy = "AdminOnly")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAdmin(int id)
         {

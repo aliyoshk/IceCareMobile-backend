@@ -27,11 +27,23 @@ namespace IceCareNigLtd.Core.Services
             if (!accounts.Any())
                 return new Response<BankDto> { Success = false, Message = "Company bank(s) detail(s) is/are null" };
 
-            foreach(var item in accounts)
-            {
-                if (!item.BankName.Contains(bankDto.BankName))
-                    return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
-            }
+            //foreach(var item in accounts)
+            //{
+            //    if (!item.BankName.Contains(bankDto.BankName.Replace(" ", "")))
+            //        return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
+            //}
+
+            var existingBank = accounts.FirstOrDefault(b => b.BankName == bankDto.BankName.Replace(" ", ""));
+
+            if (existingBank == null)
+                return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
+
+            if (bankDto.EntityName == "")
+                return new Response<BankDto> { Success = false, Message = $"Fill in the name" };
+
+            if (bankDto.Amount <= 0)
+                return new Response<BankDto> { Success = false, Message = $"The amount should be greather than 0" };
+
 
             var bank = new Bank
             {

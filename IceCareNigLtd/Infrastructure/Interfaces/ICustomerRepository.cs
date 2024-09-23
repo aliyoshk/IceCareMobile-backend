@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Core.Entities;
 
 namespace IceCareNigLtd.Infrastructure.Interfaces

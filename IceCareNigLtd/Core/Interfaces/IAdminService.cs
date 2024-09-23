@@ -12,7 +12,7 @@ namespace IceCareNigLtd.Core.Interfaces
         Task<Response<AdminDto>> AddAdminAsync(AdminDto adminDto);
         Task<Response<List<AdminDto>>> GetAdminsAsync();
         Task<Response<object>> DeleteAdminAsync(int adminId);
-        Task<Response<string>> LoginAsync(AdminLoginDto adminLoginDto);
+        Task<Response<AdminResponseDto>> LoginAsync(AdminLoginDto adminLoginDto);
 
 
         // Add mobile onboarding 

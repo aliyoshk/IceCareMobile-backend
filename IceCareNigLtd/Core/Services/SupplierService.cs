@@ -36,37 +36,39 @@ namespace IceCareNigLtd.Core.Services
                 };
             }
 
-            if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString())
-            {
-                foreach (var mode in supplierDto.Banks)
-                {
-                    if (mode.AmountTransferred <= 0 || mode.BankName == "")
-                        return new Response<bool> { Success = false, Message = "All fields cannot be empty" };
-                }
-            }
+            if (supplierDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
+                supplierDto.Banks = new List<BankInfoDto>();
 
             var accounts = await _settingsRepository.GetCompanyAccountsAsync();
             if (!accounts.Any())
                 return new Response<bool> { Success = false, Message = "No bank record found" };
 
             var errorMessages = new List<string>();
-            foreach (var bank in supplierDto.Banks)
+
+            if (supplierDto.ModeOfPayment == ModeOfPayment.Transfer.ToString())
             {
-                var existingBank = accounts.FirstOrDefault(b => b.BankName == bank.BankName.Replace(" ", ""));
+                supplierDto.Amount = 0;
+                foreach (var bank in supplierDto.Banks)
+                {
+                    var existingBank = accounts.FirstOrDefault(b => b.BankName == bank.BankName.Replace(" ", ""));
 
-                if (existingBank == null)
-                    errorMessages.Add($"{bank.BankName} doesn't exist in the system");
+                    if (bank.BankName == "")
+                        errorMessages.Add($"Select bank, field cannot be empty");
 
-                if (bank.AmountTransferred <= 0)
-                    errorMessages.Add($"The amount transferred for {bank.BankName} can't be 0 or less");
+                    if (existingBank == null)
+                        errorMessages.Add($"{bank.BankName} doesn't exist in the system");
+
+                    if (bank.AmountTransferred <= 0)
+                        errorMessages.Add($"The amount transferred for {bank.BankName} should be greather than 0");
+                }
             }
 
             if (errorMessages.Any())
                 return new Response<bool> { Success = false, Message = string.Join("; ", errorMessages) };
 
 
-            decimal? total = supplierDto.Banks.Sum(a => a.AmountTransferred);
-            var totalNairaAmount = total ?? supplierDto.Amount;
+            decimal total = supplierDto.Banks.Sum(a => a.AmountTransferred);
+            var totalNairaAmount = total > 0 ? total : supplierDto.Amount;
 
             var supplier = new Supplier
             {

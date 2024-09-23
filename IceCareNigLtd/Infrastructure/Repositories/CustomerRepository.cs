@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Api.Models;
 
 namespace IceCareNigLtd.Infrastructure.Repositories
 {

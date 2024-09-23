@@ -7,6 +7,7 @@ using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
 using IceCareNigLtd.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Core.Services
@@ -48,14 +49,10 @@ namespace IceCareNigLtd.Core.Services
                     Data = false
                 };
             }
-
-            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString())
+            if (customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
             {
-                foreach (var mode in customerDto.Banks)
-                {
-                    if (mode.AmountTransferred <= 0 || mode.BankName == "")
-                        return new Response<bool> { Success = false, Message = "All fields cannot be empty" };
-                }
+                customerDto.Banks = new List<BankInfoDto>();
+                customerDto.PaymentEvidence = new List<ReceiptDto>();
             }
 
             var accounts = await _settingsRepository.GetCompanyAccountsAsync();
@@ -63,22 +60,30 @@ namespace IceCareNigLtd.Core.Services
                 return new Response<bool> { Success = false, Message = "No bank record found" };
 
             var errorMessages = new List<string>();
-            foreach (var bank in customerDto.Banks)
+
+            if (customerDto.ModeOfPayment == ModeOfPayment.Transfer.ToString())
             {
-                var existingBank = accounts.FirstOrDefault(b => b.BankName == bank.BankName.Replace(" ", ""));
+                customerDto.Amount = 0;
+                foreach (var bank in customerDto.Banks)
+                {
+                    var existingBank = accounts.FirstOrDefault(b => b.BankName == bank.BankName.Replace(" ", ""));
 
-                if (existingBank == null)
-                    errorMessages.Add($"{bank.BankName} doesn't exist in the system");
+                    if (bank.BankName == "")
+                        errorMessages.Add($"Select Bank, field cannot be empty");
 
-                if (bank.AmountTransferred <= 0)
-                    errorMessages.Add($"The amount transferred for {bank.BankName} can't be 0 or less");
+                    if (existingBank == null)
+                        errorMessages.Add($"{bank.BankName} doesn't exist in the system");
+
+                    if (bank.AmountTransferred <= 0)
+                        errorMessages.Add($"The amount transferred for {bank.BankName} should be greather than 0");
+                }
             }
 
             if (errorMessages.Any())
                 return new Response<bool> { Success = false, Message = string.Join("; ", errorMessages) };
 
-            decimal? total = customerDto.Banks.Sum(a => a.AmountTransferred);
-            var totalNairaAmount = total ?? customerDto.Amount;
+            decimal total = customerDto.Banks.Sum(a => a.AmountTransferred);
+            var totalNairaAmount = total > 0 ? total : customerDto.Amount;
 
             var customer = new Customer
             {

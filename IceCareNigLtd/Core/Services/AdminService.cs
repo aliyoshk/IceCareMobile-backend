@@ -54,7 +54,8 @@ namespace IceCareNigLtd.Core.Services
             {
                 Name = adminDto.Name,
                 Email = adminDto.Email,
-                Password = _passwordHasher.HashPassword(adminDto.Password),
+                //Password = _passwordHasher.HashPassword(adminDto.Password),
+                Password = adminDto.Password,
                 Role = "Normal",
                 Date = DateTime.Now
             };
@@ -69,6 +70,7 @@ namespace IceCareNigLtd.Core.Services
             var admins = await _adminRepository.GetAdminsAsync();
             var adminDtos = admins.Select(a => new AdminDto
             {
+                Id = a.Id,
                 Name = a.Name,
                 Email = a.Email,
                 Role = a.Role,
@@ -86,11 +88,11 @@ namespace IceCareNigLtd.Core.Services
         }
 
 
-        public async Task<Response<string>> LoginAsync(AdminLoginDto adminLoginDto)
+        public async Task<Response<AdminResponseDto>> LoginAsync(AdminLoginDto adminLoginDto)
         {
             if (adminLoginDto == null)
             {
-                return new Response<string> { Success = false, Message = "Login data cannot be null" };
+                return new Response<AdminResponseDto> { Success = false, Message = "Login data cannot be null" };
             }
 
             // Check against hardcoded credentials
@@ -104,14 +106,22 @@ namespace IceCareNigLtd.Core.Services
 
             // Check against credentials stored in the database
             var admin = await _adminRepository.GetAdminByUsernameAsync(adminLoginDto.Email);
-
+            
             if (admin != null && admin.Password == adminLoginDto.Password) // Verify hashed password in a real scenario
             {
                 var token = _tokenService.GenerateToken(admin.Email, admin.Name);
-                return new Response<string> { Success = true, Message = "Login successful", Data = token };
+                var response = new AdminResponseDto()
+                {
+                    AdminName = admin.Name,
+                    ShowAdminPanel = admin.Role.ToLower() != "normal" ? true : false,
+                    Role = admin.Role,
+                    Token = token
+                };
+
+                return new Response<AdminResponseDto> { Success = true, Message = "Login successful", Data = response };
             }
 
-            return new Response<string> { Success = false, Message = "Invalid credentials" };
+            return new Response<AdminResponseDto> { Success = false, Message = "Invalid credentials" };
         }
 
 

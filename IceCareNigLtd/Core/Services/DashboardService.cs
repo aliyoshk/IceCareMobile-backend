@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Net.NetworkInformation;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Infrastructure.Interfaces.Users;
 
 namespace IceCareNigLtd.Core.Services
 {
@@ -15,15 +17,19 @@ namespace IceCareNigLtd.Core.Services
         private readonly IBankRepository _bankRepository;
         private readonly IAdminRepository _adminRepository;
         private readonly ISettingsRepository _settingsRepository;
+        private readonly IUserRepository _userRepository;
 
 
-        public DashboardService(ISupplierRepository supplierRepository, ICustomerRepository customerRepository, IBankRepository bankRepository, IAdminRepository adminRepository, ISettingsRepository settingsRepository)
+        public DashboardService(ISupplierRepository supplierRepository, ICustomerRepository customerRepository,
+            IBankRepository bankRepository, IAdminRepository adminRepository, ISettingsRepository settingsRepository,
+            IUserRepository userRepository)
         {
             _supplierRepository = supplierRepository;
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
             _adminRepository = adminRepository;
             _settingsRepository = settingsRepository;
+            _userRepository = userRepository;
         }
 
 
@@ -108,7 +114,7 @@ namespace IceCareNigLtd.Core.Services
             // Total Transferred Amount by summing supplier and customer transfer amounts
             var totalSupplierTransfers = await _supplierRepository.GetTotalTransferredAmountAsync();
             var totalCustomerTransfers = await _customerRepository.GetTotalTransferredAmountAsync();
-            var totalTransferredAmount = totalSupplierTransfers - totalCustomerTransfers;
+            var totalTransferredAmount =  totalCustomerTransfers - totalSupplierTransfers;
 
             // Available Dollar Amount based on the saved total dollar from supplier
             var availableDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
@@ -122,6 +128,22 @@ namespace IceCareNigLtd.Core.Services
             //Get Company Accounts
             var accounts = await _settingsRepository.GetCompanyAccountsAsync();
 
+            var pendingTransfers = await _userRepository.GetTransferByStatusAsync("Pending");
+            var pendingUsers = await _userRepository.GetUsersByStatusAsync("Pending");
+
+            var customers = await _customerRepository.GetCustomersAsync();
+            var monthlyTransfers = customers
+                .GroupBy(c => new { c.Date.Year, c.Date.Month })
+                .Select(c => new MonthlyTransferDto
+                {
+                    Year = c.Key.Year,
+                    Month = c.Key.Month,
+                    TotalAmount = c.Sum(c => c.TotalNairaAmount)
+                })
+                .OrderBy(result => result.Year)
+                .ThenBy(result => result.Month)
+                .ToList();
+
             // Populate the DTO
             var dashboardDto = new DashboardDto
             {
@@ -134,7 +156,19 @@ namespace IceCareNigLtd.Core.Services
                 DollarRate = dollarRate,
                 CompanyPhoneNumbers = phoneNumbers,
                 ShowAdminPanel =  admin.Role.ToLower() != "normal"  ? true : false,
-                CompanyAccounts = accounts
+                CompanyAccounts = accounts,
+                PendingTransfer = pendingTransfers.Take(4).Select(p => new PendingTransfer
+                {
+                    Name = p.CustomerName,
+                    Date = p.TransactionDate,
+                    amount = p.BankDetails.Sum(a => a.TransferredAmount)
+                }).ToList(),
+                PendingRegistration = pendingUsers.Take(4).Select(u => new PendingRegistration
+                {
+                    Name = u.FullName,
+                    Date = u.Date
+                }).ToList(),
+                MonthlyTransfers = monthlyTransfers
             };
 
             return new Response<DashboardDto>
