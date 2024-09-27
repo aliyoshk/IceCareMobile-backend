@@ -18,13 +18,16 @@ namespace IceCareNigLtd.Core.Services
         private readonly IBankRepository _bankRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ISettingsRepository _settingsRepository;
+        private readonly IPaymentRepository _paymentsRepository;
 
-        public CustomerService(ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository, ISettingsRepository settingsRepository)
+        public CustomerService(ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository,
+            ISettingsRepository settingsRepository, IPaymentRepository paymentsRepository)
         {
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
             _supplierRepository = supplierRepository;
             _settingsRepository = settingsRepository;
+            _paymentsRepository = paymentsRepository;
         }
 
         public async Task<Response<bool>> AddCustomerAsync(CustomerDto customerDto)
@@ -109,7 +112,7 @@ namespace IceCareNigLtd.Core.Services
                 }).ToList() ?? new List<CustomerBankInfo>()
             };
 
-            await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
+            //await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
             await _customerRepository.AddCustomerAsync(customer);
 
             
@@ -188,6 +191,44 @@ namespace IceCareNigLtd.Core.Services
         {
             await _customerRepository.DeleteCustomerAsync(customerId);
             return new Response<object> { Success = true, Message = "Customer deleted successfully" };
+        }
+
+        public async Task<Response<bool>> CompleteCustomerPayment(CompletePaymentRequest completePaymentRequest)
+        {
+            var customer =  await _customerRepository.GetCustomerByIdAsync(completePaymentRequest.CustomerId);
+            var availableDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
+
+            if (completePaymentRequest.DollarAmount > availableDollarAmount)
+                return new Response<bool> { Success = false, Message = "Insufficient dollar to complete request", Data = false };
+
+            if (customer.Id != completePaymentRequest.CustomerId)
+                return new Response<bool> { Success = false, Message = "Customer ID does not correspond with records.", Data = false };
+            else if (customer.PhoneNumber != completePaymentRequest.PhoneNumber)
+                return new Response<bool> { Success = false, Message = "The Phone number enterred does not correspond with saved one.", Data = false };
+            
+            else if (customer.DollarAmount != completePaymentRequest.DollarAmount)
+                return new Response<bool> { Success = false, Message = "Dollar amount does not match with saved record.", Data = false };
+
+            else if (completePaymentRequest.DollarAmount == 0)
+                return new Response<bool> { Success = false, Message = "Dollar amount should be greather than 0", Data = false };
+
+            var payment = new Payment
+            {
+                CustomerName = customer.Name,
+                Date = DateTime.UtcNow,
+                DollarAmount = customer.DollarAmount + completePaymentRequest.Charges,
+            };
+
+            await _paymentsRepository.AddPaymentAsync(payment);
+            await _supplierRepository.SubtractDollarAmountAsync(customer.DollarAmount);
+            await _customerRepository.DeleteCustomerAsync(customer.Id);
+
+            return new Response<bool>
+            {
+                Success = true,
+                Message = "Customer payment is successful",
+                Data = true
+            };
         }
     }
 }

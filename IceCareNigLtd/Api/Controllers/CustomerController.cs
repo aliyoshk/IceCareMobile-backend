@@ -1,7 +1,9 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
+using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
+using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Core.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -117,6 +119,59 @@ namespace IceCareNigLtd.Api.Controllers
             }
 
             return Ok(result);
+        }
+
+
+        [HttpPost]
+        [Route("CompleteCustomerPayment")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteCustomerPayment([FromBody] CompletePaymentRequest completePaymentRequest)
+        {
+            if (completePaymentRequest == null)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Customer data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(completePaymentRequest.CustomerId), completePaymentRequest.CustomerId.ToString() },
+                { nameof(completePaymentRequest.DollarAmount), completePaymentRequest.DollarAmount.ToString()},
+                { nameof(completePaymentRequest.PhoneNumber), completePaymentRequest.PhoneNumber },
+                { nameof(completePaymentRequest.Charges), completePaymentRequest.Charges.ToString() },
+            };
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
+            var response = await _customerService.CompleteCustomerPayment(completePaymentRequest);
+
+            if (!response.Success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Errors = new List<string> { "Failed to complete customer payment request." }
+                });
+            }
+
+            return Ok(response);
         }
     }
 }
