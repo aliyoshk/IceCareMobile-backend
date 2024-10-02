@@ -14,8 +14,7 @@ namespace IceCareNigLtd.Infrastructure.Data
                 context.Settings.Add(new Settings
                 {
                     Id = 1,
-                    DollarRate = 1.0m,
-                    CompanyPhoneNumbers = ""
+                    DollarRate = 1.0m
                 });
                 await context.SaveChangesAsync();
             }

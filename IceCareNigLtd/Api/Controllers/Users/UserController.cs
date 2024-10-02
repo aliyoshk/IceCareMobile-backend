@@ -51,7 +51,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                 });
             }
 
-            return Ok(result.Data);
+            return Ok(result);
         }
 
 
@@ -144,6 +144,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize]
         [Route("ResetPassword")]
         public async Task<IActionResult> UpdatePhoneNumbers([FromBody] ResetPasswordRequest resetPasswordRequest)
         {

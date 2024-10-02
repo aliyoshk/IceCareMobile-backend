@@ -34,23 +34,19 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<string> GetCompanyPhoneNumbersAsync()
+        public async Task<List<CompanyPhones>> GetCompanyPhoneNumbersAsync()
         {
-            var settings = await _context.Settings.FirstOrDefaultAsync();
-            return settings?.CompanyPhoneNumbers ?? "";
+            var companyPhones = await _context.CompanyPhones.ToListAsync();
+            if (companyPhones == null)
+                return new List<CompanyPhones>();
+
+            return companyPhones;
         }
 
-        public async Task<bool> UpdateCompanyPhoneNumbersAsync(List<string> phoneNumbers)
+        public async Task AddCompanyPhoneNumbersAsync(CompanyPhones phoneNumber)
         {
-            var settings = await _context.Settings.FirstOrDefaultAsync();
-            if (settings == null)
-            {
-                return false;
-            }
-
-            settings.CompanyPhoneNumbers = string.Join(",", phoneNumbers);
+            await _context.CompanyPhones.AddAsync(phoneNumber);
             await _context.SaveChangesAsync();
-            return true;
         }
 
         public async Task<List<CompanyAccounts>> GetCompanyAccountsAsync()
@@ -58,7 +54,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories
             var accounts = await _context.CompanyAccounts.ToListAsync();
             if (accounts == null)
             {
-                return new List<CompanyAccounts>(); ;
+                return new List<CompanyAccounts>();
             }
             return accounts;
         }

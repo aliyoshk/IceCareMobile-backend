@@ -19,6 +19,7 @@ namespace IceCareNigLtd.Infrastructure.Data
         public DbSet<Bank> Banks { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Settings> Settings { get; set; }
+        public DbSet<CompanyPhones> CompanyPhones { get; set; }
         public DbSet<CompanyAccounts> CompanyAccounts { get; set; }
         public DbSet<DollarAvailable> DollarAvailables { get; set; }
 

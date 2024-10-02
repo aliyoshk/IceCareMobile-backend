@@ -144,6 +144,30 @@ namespace IceCareNigLtd.Core.Services
                 .ThenBy(result => result.Month)
                 .ToList();
 
+            // Get the current day, month and year
+            var currentMonth = DateTime.Now.Month;
+            var currentYear = DateTime.Now.Year;
+            var currentDay = DateTime.Today.Day;
+
+            // Filter customers by the current month and year
+            var filteredCustomersForCurrentMonth = customers
+                .Where(c => c.Date.Month == currentMonth && c.Date.Year == currentYear)
+                .ToList();
+
+            // Filter customers by the current day, month, and year (for the current day)
+            var filteredCustomersForCurrentDay = customers
+                .Where(c => c.Date.Day == currentDay && c.Date.Month == currentMonth && c.Date.Year == currentYear)
+                .ToList();
+
+            // Calculate the total Naira and Dollar amounts for the current month
+            var totalNairaAmountForCurrentMonth = filteredCustomersForCurrentMonth.Sum(c => c.TotalNairaAmount);
+            var totalDollarAmountForCurrentMonth = filteredCustomersForCurrentMonth.Sum(c => c.DollarAmount);
+
+
+            // Calculate the total Naira and Dollar amounts for the current day
+            var totalNairaAmountForCurrentDay = filteredCustomersForCurrentDay.Sum(c => c.TotalNairaAmount);
+            var totalDollarAmountForCurrentDay = filteredCustomersForCurrentDay.Sum(c => c.DollarAmount);
+
             // Populate the DTO
             var dashboardDto = new DashboardDto
             {
@@ -154,6 +178,9 @@ namespace IceCareNigLtd.Core.Services
                 TotalTransferredAmount = totalTransferredAmount,
                 AvailableDollarAmount = availableDollarAmount,
                 DollarRate = dollarRate,
+                TotalMonthlyNairaTransfer = totalNairaAmountForCurrentMonth,
+                TotalMonthlyDollarSpent = totalDollarAmountForCurrentMonth,
+                TotalDailyNairaTransfer = totalNairaAmountForCurrentDay,
                 CompanyPhoneNumbers = phoneNumbers,
                 ShowAdminPanel =  admin.Role.ToLower() != "normal"  ? true : false,
                 CompanyAccounts = accounts,
@@ -198,42 +225,25 @@ namespace IceCareNigLtd.Core.Services
             };
         }
 
-        public async Task<Response<bool>> UpdateCompanyPhoneNumbersAsync(List<string> phoneNumbers)
+        public async Task<Response<bool>> AddCompanyPhoneNumbersAsync(CompanyPhoneDto companyPhoneDto)
         {
-            var result = await _settingsRepository.UpdateCompanyPhoneNumbersAsync(phoneNumbers);
-            if (!result)
+            var result = await _settingsRepository.GetCompanyPhoneNumbersAsync();
+            foreach (var item in result)
             {
-                return new Response<bool>
-                {
-                    Success = false,
-                    Message = "Failed to update company phone numbers"
-                };
+                if (item.PhoneNumber == companyPhoneDto.phoneNumber)
+                    return new Response<bool> { Success = false, Message = "Phone already exist in the system" };
             }
 
-            return new Response<bool>
+            var phoneNumber = new CompanyPhones
             {
-                Success = true,
-                Message = "Company phone numbers updated successfully",
-                Data = true
+                PhoneNumber = companyPhoneDto.phoneNumber
             };
-        }
 
-        public async Task<Response<bool>> UpdateCompanyAccountsAsync(List<string> phoneNumbers)
-        {
-            var result = await _settingsRepository.UpdateCompanyPhoneNumbersAsync(phoneNumbers);
-            if (!result)
-            {
-                return new Response<bool>
-                {
-                    Success = false,
-                    Message = "Failed to update company phone numbers"
-                };
-            }
-
+            await _settingsRepository.AddCompanyPhoneNumbersAsync(phoneNumber);
             return new Response<bool>
             {
                 Success = true,
-                Message = "Company phone numbers updated successfully",
+                Message = "Company phone numbers added successfully",
                 Data = true
             };
         }

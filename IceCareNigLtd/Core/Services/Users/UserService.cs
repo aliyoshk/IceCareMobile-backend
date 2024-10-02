@@ -24,9 +24,11 @@ namespace IceCareNigLtd.Core.Services.Users
         private readonly ICustomerRepository _customerRepository;
         private readonly IBankRepository _bankRepository;
         private readonly ISupplierRepository _supplierRepository;
+        private readonly ITokenService _tokenService;
 
         public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, ISettingsRepository settingsRepository,
-             ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository)
+             ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository,
+             ITokenService tokenService)
 		{
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
@@ -34,6 +36,7 @@ namespace IceCareNigLtd.Core.Services.Users
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
             _supplierRepository = supplierRepository;
+            _tokenService = tokenService;
         }
 
         public async Task<Response<LoginResponse>> LoginUserAsync(LoginDto loginDto)
@@ -70,11 +73,14 @@ namespace IceCareNigLtd.Core.Services.Users
             if (customer != null)
                 balance = customer.Balance;
 
+            var token = _tokenService.GenerateToken(user.Email, user.FullName);
+
             var userDto = new LoginResponse
             {
                 Id = user.Id,
                 FullName = user.FullName,
                 Email = user.Email,
+                Token = token,
                 Status = user.Status,
                 AccountNumber = user.AccountNumber,
                 Phone = user.Phone,

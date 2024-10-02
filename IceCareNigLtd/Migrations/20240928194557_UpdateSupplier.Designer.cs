@@ -3,6 +3,7 @@ using System;
 using IceCareNigLtd.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IceCareNigLtd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240928194557_UpdateSupplier")]
+    partial class UpdateSupplier
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -127,26 +129,6 @@ namespace IceCareNigLtd.Migrations
                     b.HasIndex("SettingsId");
 
                     b.ToTable("CompanyAccounts");
-                });
-
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.CompanyPhones", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("SettingsId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SettingsId");
-
-                    b.ToTable("CompanyPhones");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Customer", b =>
@@ -279,6 +261,9 @@ namespace IceCareNigLtd.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("CompanyPhoneNumbers")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("DollarRate")
                         .HasColumnType("TEXT");
@@ -585,13 +570,6 @@ namespace IceCareNigLtd.Migrations
                         .HasForeignKey("SettingsId");
                 });
 
-            modelBuilder.Entity("IceCareNigLtd.Core.Entities.CompanyPhones", b =>
-                {
-                    b.HasOne("IceCareNigLtd.Core.Entities.Settings", null)
-                        .WithMany("CompanyPhoneNumbers")
-                        .HasForeignKey("SettingsId");
-                });
-
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.CustomerBankInfo", b =>
                 {
                     b.HasOne("IceCareNigLtd.Core.Entities.Customer", "Customer")
@@ -646,8 +624,6 @@ namespace IceCareNigLtd.Migrations
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Settings", b =>
                 {
                     b.Navigation("CompanyAccounts");
-
-                    b.Navigation("CompanyPhoneNumbers");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Supplier", b =>

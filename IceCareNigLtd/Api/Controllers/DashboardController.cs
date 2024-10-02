@@ -82,14 +82,19 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Route("UpdatePhoneNumbers")]
-        public async Task<IActionResult> UpdatePhoneNumbers([FromBody] List<string> phoneNumbers)
+        [Route("AddCompanyPhoneNumbers")]
+        public async Task<IActionResult> AddCompanyPhoneNumbers([FromBody] CompanyPhoneDto companyPhoneDto)
         {
-            var response = await _dashboardService.UpdateCompanyPhoneNumbersAsync(phoneNumbers);
+            if (companyPhoneDto.phoneNumber == null)
+                return BadRequest(new ErrorResponse { Success = false, Message = "Phone number cannot be empty" });
+
+            var response = await _dashboardService.AddCompanyPhoneNumbersAsync(companyPhoneDto);
+
             if (!response.Success)
             {
                 return BadRequest(response.Message);
             }
+
             return Ok(response.Message);
         }
 

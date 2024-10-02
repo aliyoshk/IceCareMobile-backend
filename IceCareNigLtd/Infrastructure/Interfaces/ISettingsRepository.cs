@@ -7,8 +7,8 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
 	{
         Task<decimal> GetDollarRateAsync();
         Task<bool> UpdateDollarRateAsync(decimal newDollarRate);
-        Task<string> GetCompanyPhoneNumbersAsync();
-        Task<bool> UpdateCompanyPhoneNumbersAsync(List<string> phoneNumbers);
+        Task<List<CompanyPhones>> GetCompanyPhoneNumbersAsync();
+        Task AddCompanyPhoneNumbersAsync(CompanyPhones phoneNumber);
         Task<List<CompanyAccounts>> GetCompanyAccountsAsync();
         Task AddCompanyAccountAsync(CompanyAccounts accounts);
         Task<bool> DeleteAccountAsync(int bankId);

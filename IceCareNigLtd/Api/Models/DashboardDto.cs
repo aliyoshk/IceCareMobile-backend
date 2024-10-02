@@ -11,9 +11,12 @@ namespace IceCareNigLtd.Api.Models
         public decimal TotalTransferredAmount { get; set; }
         public decimal AvailableDollarAmount { get; set; }
         public decimal DollarRate { get; set; }
-        public string CompanyPhoneNumbers { get; set; }
+        public List<CompanyPhones> CompanyPhoneNumbers { get; set; }
         public string AdminRole { get; set; }
         public bool ShowAdminPanel { get; set; }
+        public decimal TotalMonthlyNairaTransfer { get; set; }
+        public decimal TotalMonthlyDollarSpent { get; set; }
+        public decimal TotalDailyNairaTransfer { get; set; }
         public List<CompanyAccounts> CompanyAccounts { get; set; } = new List<CompanyAccounts>();
         public List<PendingTransfer> PendingTransfer { get; set; } = new List<PendingTransfer>();
         public List<PendingRegistration> PendingRegistration { get; set; } = new List<PendingRegistration>();

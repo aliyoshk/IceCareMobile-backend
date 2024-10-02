@@ -13,6 +13,7 @@ namespace IceCareNigLtd.Api.Models.Request
         public decimal DollarAmount { get; set; }
         public decimal Amount { get; set; }
         public string Channel { get; set; }
+        public decimal Balance { get; set; }
     }
 
     public class BankInfoDto
