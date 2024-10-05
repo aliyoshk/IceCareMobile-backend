@@ -11,8 +11,8 @@ namespace IceCareNigLtd.Core.Interfaces
         Task<Response<string>> UpdateDollarRateAsync(UpdateDollarDto updateDollarDto);
         Task<Response<bool>> AddCompanyPhoneNumbersAsync(CompanyPhoneDto companyPhoneDto);
         Task<Response<List<CompanyAccounts>>> GetCompanyAccountsAsync();
-        Task<Response<bool>> AddCompanyAccountAsyn(CompanyAccountsDto companyAccountsDto);
-        Task<Response<bool>> DeleteAccountsAsync(int bankId);
+        Task<Response<List<CompanyAccounts>>> AddCompanyAccountAsyn(CompanyAccountsDto companyAccountsDto);
+        Task<Response<List<CompanyAccounts>>> DeleteAccountsAsync(int bankId);
     }
 }
 

@@ -248,14 +248,18 @@ namespace IceCareNigLtd.Core.Services
             };
         }
 
-        public async Task<Response<bool>> AddCompanyAccountAsyn(CompanyAccountsDto companyAccountsDto)
+        public async Task<Response<List<CompanyAccounts>>> AddCompanyAccountAsyn(CompanyAccountsDto companyAccountsDto)
         {
             var accounts = await _settingsRepository.GetCompanyAccountsAsync();
 
             foreach (var item in accounts)
             {
                 if (item.BankName == companyAccountsDto.BankName && item.AccountNumber == companyAccountsDto.AccountNumber)
-                    return new Response<bool> { Success = false, Message = "Banks already exist in the system" };
+                    return new Response<List<CompanyAccounts>>
+                    {
+                        Success = false,
+                        Message = "Banks already exist in the system"
+                    };
             }
 
             var data = new CompanyAccounts
@@ -267,26 +271,33 @@ namespace IceCareNigLtd.Core.Services
 
             await _settingsRepository.AddCompanyAccountAsync(data);
 
-            return new Response<bool> { Success = true, Message = "Account added successfully", Data = true };
+            var account = await _settingsRepository.GetCompanyAccountsAsync();
+            return new Response<List<CompanyAccounts>>
+            {
+                Success = true,
+                Message = "Account added successfully",
+                Data = account
+            };
         }
 
-        public async Task<Response<bool>> DeleteAccountsAsync(int bankId)
+        public async Task<Response<List<CompanyAccounts>>> DeleteAccountsAsync(int bankId)
         {
             var result = await _settingsRepository.DeleteAccountAsync(bankId);
             if (!result)
             {
-                return new Response<bool>
+                return new Response<List<CompanyAccounts>>
                 {
                     Success = false,
                     Message = "Account record doesn't exist"
                 };
             }
 
-            return new Response<bool>
+            var accounts = await _settingsRepository.GetCompanyAccountsAsync();
+            return new Response<List<CompanyAccounts>>
             {
                 Success = true,
                 Message = "Account Deleted successfully",
-                Data = true
+                Data = accounts
             };
         }
 

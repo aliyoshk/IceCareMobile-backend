@@ -192,7 +192,7 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            return Ok(result.Message);
+            return Ok(result);
         }
     }
 }
