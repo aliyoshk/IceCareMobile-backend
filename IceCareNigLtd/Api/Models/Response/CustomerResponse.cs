@@ -26,6 +26,7 @@ namespace IceCareNigLtd.Api.Models.Response
         public string PaymentCurrency { get; set; }
         public List<ReceiptDto> PaymentEvidence { get; set; }
         public string AccountNumber { get; set; }
+        public decimal Deposit { get; set; }
     }
 
     public class ReceiptDto

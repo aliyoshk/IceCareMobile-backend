@@ -31,7 +31,9 @@ namespace IceCareNigLtd.Core.Services
             {
                 CustomerName = paymentDto.CustomerName,
                 Date = DateTime.UtcNow,
-                DollarAmount = paymentDto.DollarAmount
+                DollarAmount = paymentDto.DollarAmount,
+                Balance = paymentDto.Balance,
+                Deposit = paymentDto.Deposit
             };
 
             await _supplierRepository.SubtractDollarAmountAsync(paymentDto.DollarAmount);
@@ -64,7 +66,9 @@ namespace IceCareNigLtd.Core.Services
                 Id = p.Id,
                 CustomerName = p.CustomerName,
                 Date = p.Date,
-                DollarAmount = p.DollarAmount
+                DollarAmount = p.DollarAmount,
+                Balance = p.Balance,
+                Deposit = p.Deposit
             }).ToList();
 
             return new Response<List<PaymentDto>> { Success = true, Message = "Payments retrieved successfully", Data = paymentDtos };

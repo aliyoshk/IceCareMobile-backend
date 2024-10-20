@@ -80,7 +80,8 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = supplierDto.DollarAmount,
                 TotalNairaAmount = totalNairaAmount,
                 Channel = Channel.WalkIn,
-                Balance = supplierDto.Balance,
+                Balance = supplierDto.Balance < 0 ? supplierDto.Balance : 0,
+                Deposit = supplierDto.Balance > 0 ? supplierDto.Balance : 0,
                 Banks = supplierDto.Banks?.Select(b => new BankInfo
                 {
                     BankName = b.BankName ?? "",
@@ -138,6 +139,7 @@ namespace IceCareNigLtd.Core.Services
                 Amount = s.TotalNairaAmount,
                 Channel = s.Channel.ToString(),
                 Balance = s.Balance,
+                Deposit = s.Deposit,
                 Banks = s.Banks.Select(b => new BankInfoDto
                 {
                     BankName = b.BankName.ToString(),

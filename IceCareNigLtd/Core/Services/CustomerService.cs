@@ -97,9 +97,10 @@ namespace IceCareNigLtd.Core.Services
                 DollarRate = customerDto.DollarRate,
                 DollarAmount = customerDto.DollarAmount,
                 TotalNairaAmount = totalNairaAmount,
-                Balance = customerDto.Balance,
+                Balance = customerDto.Balance < 0 ? customerDto.Balance : 0,
                 PaymentCurrency = Enum.Parse<PaymentCurrency>(customerDto.PaymentCurrency.ToString()),
                 Channel = Channel.WalkIn,
+                Deposit = customerDto.Balance > 0 ? customerDto.Balance : 0,
                 PaymentEvidence = customerDto?.PaymentEvidence?.Select(e => new CustomerPaymentReceipt
                 {
                     Reciept = e.Receipt
@@ -159,6 +160,7 @@ namespace IceCareNigLtd.Core.Services
                 Balance = c.Balance,
                 PaymentCurrency = c.PaymentCurrency.ToString(),
                 AccountNumber = c.AccountNumber,
+                Deposit = c.Deposit,
                 Banks = c.Banks.Select(b => new BankInfoDto
                 {
                     BankName = b.BankName,
