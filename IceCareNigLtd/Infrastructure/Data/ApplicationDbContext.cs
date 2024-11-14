@@ -3,6 +3,7 @@ using IceCareNigLtd.Core.Entities;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using IceCareNigLtd.Core.Entities.Users;
+using IceCareNigLtd.Core;
 
 namespace IceCareNigLtd.Infrastructure.Data
 {
@@ -18,11 +19,18 @@ namespace IceCareNigLtd.Infrastructure.Data
         public DbSet<Bank> Banks { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Settings> Settings { get; set; }
+        public DbSet<CompanyPhones> CompanyPhones { get; set; }
         public DbSet<CompanyAccounts> CompanyAccounts { get; set; }
+        public DbSet<DollarAvailable> DollarAvailables { get; set; }
 
 
         //Mobile app DBSets (table)
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<Transfer> Transfers { get; set; }
+        public DbSet<TransferBank> TransferBanks { get; set; }
+        public DbSet<EvidenceOfTransfer> EvidenceOfTransfers { get; set; }
+        public DbSet<AccountPayment> AccountPayments { get; set; }
+        public DbSet<ThirdPartyPayment> ThirdPartyPayments { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -33,7 +41,6 @@ namespace IceCareNigLtd.Infrastructure.Data
                 .HasMany(s => s.Banks)
                 .WithOne(b => b.Supplier)
                 .HasForeignKey(b => b.SupplierId);
-
 
             modelBuilder.Entity<Registration>(entity =>
             {
@@ -46,6 +53,17 @@ namespace IceCareNigLtd.Infrastructure.Data
                 entity.Property(e => e.Reason).HasMaxLength(500);
                 entity.Property(e => e.AccountNumber).HasMaxLength(50);
             });
+
+
+            modelBuilder.Entity<Transfer>()
+                .HasMany(t => t.BankDetails)
+                .WithOne(tb => tb.Transfer)
+                .HasForeignKey(tb => tb.TransferId);
+
+            modelBuilder.Entity<Transfer>()
+                .HasMany(t => t.TransferEvidence)
+                .WithOne(te => te.Transfer)
+                .HasForeignKey(te => te.TransferId);
         }
     }
 }

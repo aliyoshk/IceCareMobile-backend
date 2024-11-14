@@ -2,6 +2,7 @@
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,7 +35,6 @@ namespace IceCareNigLtd.Api.Controllers
             var requiredFields = new Dictionary<string, string>
             {
                 { nameof(paymentDto.CustomerName), paymentDto.CustomerName },
-                { nameof(paymentDto.ModeOfPayment), paymentDto.ModeOfPayment},
                 { nameof(paymentDto.DollarAmount), paymentDto.DollarAmount.ToString() }
             };
             foreach (var field in requiredFields)
@@ -65,8 +65,6 @@ namespace IceCareNigLtd.Api.Controllers
             return CreatedAtAction(nameof(GetPayments), new { id = response.Data }, response);
         }
 
-
-
         [HttpGet]
         [Route("GetPaymentsRecord")]
         [Authorize]
@@ -82,8 +80,8 @@ namespace IceCareNigLtd.Api.Controllers
                 return NotFound(new ErrorResponse
                 {
                     Success = false,
-                    Message = "No payments found.",
-                    Errors = new List<string> { "Payment list is empty." }
+                    Message = "Payment list is empty. ",
+                    Errors = new List<string> { "No payments found." }
                 });
             }
 
@@ -93,6 +91,27 @@ namespace IceCareNigLtd.Api.Controllers
                 Message = "Payments retrieved successfully.",
                 Data = response.Data
             });
+        }
+
+
+        [HttpDelete("DeletePayment/{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeletePayment(int id)
+        {
+            var result = await _paymentService.DeletePaymentAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete record." }
+                });
+            }
+
+            return Ok(result);
         }
     }
 }

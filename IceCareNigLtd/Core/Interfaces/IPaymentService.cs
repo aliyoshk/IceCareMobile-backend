@@ -7,6 +7,7 @@ namespace IceCareNigLtd.Core.Interfaces
 	{
         Task<Response<PaymentDto>> AddPaymentAsync(PaymentDto paymentDto);
         Task<Response<List<PaymentDto>>> GetPaymentsAsync();
+        Task<Response<object>> DeletePaymentAsync(int paymentId);
     }
 }
 

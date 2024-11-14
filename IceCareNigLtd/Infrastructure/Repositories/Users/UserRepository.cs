@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Net.NetworkInformation;
+using System.Security.Cryptography.Xml;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces.Users;
@@ -6,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IceCareNigLtd.Infrastructure.Repositories.Users
 {
-	public class UserRepository : IUserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _context;
 
@@ -25,12 +29,6 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             return await _context.Registrations
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
-
-        //public async Task<Registration> GetUserByPhoneAsync(string phone)
-        //{
-        //    return await _context.Registrations.AnyAsync(p => p.Phone == phone);
-        //    return await _context.Registrations.AnyAsync(u => u.Phone == phone);
-        //}
 
         public async Task<List<Registration>> GetUsersByStatusAsync(string status)
         {
@@ -83,6 +81,106 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<bool> IsPhoneNumberExistsAsync(string phoneNumber)
         {
             return await _context.Registrations.AnyAsync(p => p.Phone == phoneNumber);
+        }
+
+        public async Task ResetPasswordAsync(Registration user)
+        {
+            var userDetail = await _context.Registrations.FindAsync(user.Id);
+            if (userDetail != null)
+            {
+                userDetail.Password = user.Password;
+                _context.Registrations.Update(userDetail);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task FundTransferAsync(Transfer transfer)
+        {
+            await _context.Transfers.AddAsync(transfer);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ApproveTransferAsync(Transfer user)
+        {
+            _context.Transfers.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Transfer> GetTransferByIdAsync(int id)
+        {
+            return await _context.Transfers
+                .Include(t => t.BankDetails)
+                .Include(e => e.TransferEvidence)
+                .FirstAsync(t => t.Id == id);
+
+            //return await _context.Transfers.FindAsync((id));
+        }
+
+        public async Task<List<Transfer>> GetTransferByStatusAsync(string status)
+        {
+            //return await _context.Transfers.Where(t => t.Status == status).ToListAsync();
+            return await _context.Transfers
+                .Where(t => t.Status == status)
+                .Include(t => t.BankDetails)
+                .Include(t => t.TransferEvidence)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsTransferRefrenceExistsAsync(string transactionReference)
+        {
+            return await _context.Transfers.AnyAsync(t => t.TransferReference == transactionReference);
+        }
+
+        public async Task AccountPaymentAsync(AccountPayment accountPayment)
+        {
+            await _context.AccountPayments.AddAsync(accountPayment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ThirdPartyPaymentAsync(ThirdPartyPayment thirdPartyPayment)
+        {
+            await _context.ThirdPartyPayments.AddAsync(thirdPartyPayment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SubtractTransferAmountAsync(string email, decimal amount)
+        {
+            var user = await _context.Transfers.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                if (user.Balance >= amount)
+                {
+                    user.Balance -= amount;
+                }
+                else
+                    return;
+
+                _context.Transfers.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteCustomerTransferRecordAsync(int userId)
+        {
+            var user = await _context.Transfers.FindAsync(userId);
+            if (user != null)
+            {
+                _context.Transfers.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<ThirdPartyPayment>> GetThirdPartyTransfers() => await _context.ThirdPartyPayments.ToListAsync();
+
+        public async Task<ThirdPartyPayment> GetThirdPartyPaymentById(int id) => await _context.ThirdPartyPayments.FindAsync(id);
+
+        public async Task ThirdPartyTransferCompleted(ThirdPartyPayment thirdPartyPayment)
+        {
+            _context.ThirdPartyPayments.Update(thirdPartyPayment);
+            await _context.SaveChangesAsync();
         }
     }
 }

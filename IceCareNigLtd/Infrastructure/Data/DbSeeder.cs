@@ -14,18 +14,7 @@ namespace IceCareNigLtd.Infrastructure.Data
                 context.Settings.Add(new Settings
                 {
                     Id = 1,
-                    DollarRate = 1.0m,
-                    CompanyPhoneNumbers = "",
-                    CompanyAccounts = new List<CompanyAccounts>
-                    {
-                        new CompanyAccounts
-                        {
-                            Id = 1,
-                            AccountName = "Ice Care Nig Ltd",
-                            AccountNumber = "0123456789",
-                            BankName = "Wema Bank"
-                        }
-                    }
+                    DollarRate = 1.0m
                 });
                 await context.SaveChangesAsync();
             }

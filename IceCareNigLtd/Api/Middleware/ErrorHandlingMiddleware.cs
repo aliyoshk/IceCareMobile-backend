@@ -39,7 +39,7 @@ namespace IceCareNigLtd.Api.Request
                     response = new ErrorResponse
                     {
                         Success = false,
-                        Message = "Bad request.",
+                        Message = exception.Message,
                         Errors = new List<string> { exception.Message }
                     };
                     break;
@@ -49,7 +49,8 @@ namespace IceCareNigLtd.Api.Request
                     response = new ErrorResponse
                     {
                         Success = false,
-                        Message = ex.Message,
+                        Message = $"{ex.EntityName} not found.",
+                        Data = ex.Message,
                         Errors = new List<string> { $"{ex.EntityName} not found." }
                     };
                     break;

@@ -3,13 +3,6 @@ namespace IceCareNigLtd.Core.Enums
 {
 	public class Enums
 	{
-        public enum BankName
-        {
-            UnionBank,
-            WemaBank,
-            UBA
-        }
-
         public enum PersonType
         {
             Supplier,
@@ -23,7 +16,7 @@ namespace IceCareNigLtd.Core.Enums
             Transfer
         }
 
-        public enum ExpenseType
+        public enum CreditType
         {
             Credit,
             Debit,
@@ -33,13 +26,27 @@ namespace IceCareNigLtd.Core.Enums
         {
             Mobile,
             Web,
-            None
+            WalkIn
         }
 
         public enum ReviewAction
         {
             Approve,
             Reject
+        }
+
+        public enum PaymentCurrency
+        {
+            Naira,
+            Dollar
+        }
+
+        public enum Category
+        {
+            SingleBankPayment,
+            MultipleBanksPayment,
+            AccountBalancePayment,
+            ThirdPartyPayment,
         }
     }
 }

@@ -2,6 +2,8 @@
 using System.Security.Claims;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Core.Utils;
@@ -24,11 +26,47 @@ namespace IceCareNigLtd.Api.Controllers
         }
 
         [HttpPost]
+        [Route("AdminLogin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(typeof(Response<AdminLoginDto>), 200)]
+        [Produces("application/json")]
+        public async Task<IActionResult> Login([FromBody] AdminLoginDto loginDto)
+        {
+            if (loginDto == null)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Login data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
+            var response = await _adminService.LoginAsync(loginDto);
+
+            if (!response.Success)
+            {
+                return Unauthorized(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Errors = new List<string> { "Authentication failed." }
+                });
+            }
+
+            return Ok(response);
+        }
+
+        [HttpPost]
         [Route("AddAdmin")]
         //[Authorize(Policy = "AdminOnly")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<List<AdminDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> AddAdmin([FromBody] AdminDto adminDto)
         {
             if (adminDto == null)
@@ -91,6 +129,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<AdminDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetAdmins()
         {
             var admins = await _adminService.GetAdminsAsync();
@@ -115,8 +155,8 @@ namespace IceCareNigLtd.Api.Controllers
 
 
         [HttpDelete("DeleteAdmin/{id}")]
-        [Authorize(Policy = "AdminOnly")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        //[Authorize(Policy = "AdminOnly")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAdmin(int id)
         {
@@ -131,42 +171,8 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            return NoContent();
+            return Ok(result);
         }
-
-
-
-        [HttpPost]
-        [Route("Login")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] AdminLoginDto loginDto)
-        {
-            if (loginDto == null)
-            {
-                return BadRequest(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Login data cannot be null.",
-                    Errors = new List<string> { "Invalid input." }
-                });
-            }
-
-            var response = await _adminService.LoginAsync(loginDto);
-
-            if (!response.Success)
-            {
-                return Unauthorized(new ErrorResponse
-                {
-                    Success = false,
-                    Message = response.Message,
-                    Errors = new List<string> { "Authentication failed." }
-                });
-            }
-
-            return Ok(response);
-        }
-
 
 
         // MOBILE PART INTEGRATION
@@ -175,6 +181,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Authorize]
         [Route("PendingRegistrations")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Response<List<UserDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetPendingRegistrations()
         {
             var pendingUsers = await _adminService.GetUsersByStatusAsync("Pending");
@@ -196,6 +204,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("ChangeUserStatus")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<ChangeUserStatusRequest>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> ChangeUserStatus([FromBody] ChangeUserStatusRequest request)
         {
             // Get admin's name from the current user
@@ -213,7 +223,7 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            return Ok(result.Message);
+            return Ok(result);
         }
 
 
@@ -223,6 +233,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("ApprovedUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<UserDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetApprovedUsers()
         {
             var result = await _adminService.GetApprovedUsersAsync();
@@ -244,6 +256,8 @@ namespace IceCareNigLtd.Api.Controllers
         [Route("RejectedUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<UserDto>>), 200)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetRejectedUsers()
         {
             var result = await _adminService.GetRejectedUsersAsync();
@@ -256,6 +270,123 @@ namespace IceCareNigLtd.Api.Controllers
                     Errors = new List<string> { "List is empty." }
                 });
             };
+            return Ok(result);
+        }
+
+
+        // Get Rejected Users
+        [HttpGet]
+        [Authorize]
+        [Route("GetPendingTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<TransferResponse>>), 200)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetPendingTransfer()
+        {
+            var result = await _adminService.GetUsersByTransferStatusAsync("Pending");
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("GetApprovedTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<TransferResponse>>), 200)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetApprovedTransfer()
+        {
+            var result = await _adminService.GetUsersByTransferStatusAsync("Confirmed");
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("ConfirmTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<ConfirmationRequest>), 200)]
+        [Produces("application/json")]
+        public async Task<IActionResult> ConfirmTransfer([FromBody] ConfirmationRequest request)
+        {
+            // Get admin's name from the current user
+            var adminName = User.Identity.Name ?? User.FindFirst(ClaimTypes.Name)?.Value;
+
+            // Call the service method with the request object and adminName
+            var result = await _adminService.ConfirmTransferAsync(request, adminName);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "User not found or invalid action." }
+                });
+            }
+
+            return Ok(result);
+        }
+
+
+        [HttpGet]
+        [Authorize]
+        [Route("GetThirdPartyTransfers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<ThirdPartyPaymentResponse>>), 200)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetThirdPartyTransfers()
+        {
+            var result = await _adminService.GetThirdPartyTransfer();
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("CompleteThirdPartyTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ThirdPartyTransferCompleted(int id)
+        {
+            var result = await _adminService.ThirdPartyTransferCompleted(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to approved transfer." }
+                });
+            }
+
             return Ok(result);
         }
     }

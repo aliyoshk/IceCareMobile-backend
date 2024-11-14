@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Humanizer.Configuration;
 using IceCareNigLtd.Api.Request;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
@@ -125,6 +126,21 @@ builder.Services.AddScoped<IDbSeeder, DbSeeder>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 
+// Register CORS policy
+//var allowedOrigins = "http://localhost:5174";
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", builder =>
+    {
+        builder.WithOrigins(allowedOrigins) 
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
+});
+
+
 var app = builder.Build();
 
 // Run the seeding logic to Seed Settings Data (Dollar rate and Phone number)
@@ -155,6 +171,8 @@ else
         c.RoutePrefix = string.Empty; // This makes the Swagger UI available at the root URL
     });
 }
+
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 

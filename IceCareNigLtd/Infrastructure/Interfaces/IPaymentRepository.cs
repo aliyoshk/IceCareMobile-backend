@@ -7,6 +7,7 @@ namespace IceCareNigLtd.Infrastructure.Interfaces
 	{
         Task AddPaymentAsync(Payment payment);
         Task<List<Payment>> GetPaymentsAsync();
+        Task DeletePaymentAsync(int paymentId);
     }
 }
 

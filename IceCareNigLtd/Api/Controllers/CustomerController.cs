@@ -1,9 +1,14 @@
 ﻿using System;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
+using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
+using IceCareNigLtd.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Api.Controllers
 {
@@ -42,8 +47,8 @@ namespace IceCareNigLtd.Api.Controllers
                 { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
                 { nameof(customerDto.DollarAmount), customerDto.DollarAmount.ToString() },
                 { nameof(customerDto.DollarRate), customerDto.DollarRate.ToString() },
-                { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
-                { nameof(customerDto.Balance), customerDto.Balance.ToString()}
+                { nameof(customerDto.PaymentCurrency), customerDto.PaymentCurrency },
+                { nameof(customerDto.Balance), customerDto.Balance.ToString() },
             };
             foreach (var field in requiredFields)
             {
@@ -70,7 +75,6 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            //return CreatedAtAction(nameof(GetCustomerById), new { id = response.Data }, response);
             return CreatedAtAction(nameof(GetCustomers), new { id = response.Data }, response);
         }
 
@@ -85,22 +89,89 @@ namespace IceCareNigLtd.Api.Controllers
         {
             var customers = await _customerService.GetCustomersAsync();
 
-            if (customers == null || customers.Data == null || !customers.Data.Any())
+            if (!customers.Data.Customers.Any())
             {
                 return NotFound(new ErrorResponse
                 {
                     Success = false,
-                    Message = "No customers found.",
+                    Message = "No Customer found.",
                     Errors = new List<string> { "Customer list is empty." }
                 });
             }
+            return Ok(customers.Data);
+        }
 
-            return Ok(new Response<IEnumerable<CustomerDto>>
+        [HttpDelete("DeleteCustomer/{id}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteCustomer(int id)
+        {
+            var result = await _customerService.DeleteCustomerAsync(id);
+            if (!result.Success)
             {
-                Success = true,
-                Message = "Customers retrieved successfully.",
-                Data = customers.Data
-            });
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to customer admin." }
+                });
+            }
+
+            return Ok(result);
+        }
+
+
+        [HttpPost]
+        [Route("CompleteCustomerPayment")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteCustomerPayment([FromBody] CompletePaymentRequest completePaymentRequest)
+        {
+            if (completePaymentRequest == null)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Customer data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(completePaymentRequest.CustomerId), completePaymentRequest.CustomerId.ToString() },
+                { nameof(completePaymentRequest.DollarAmount), completePaymentRequest.DollarAmount.ToString()},
+                { nameof(completePaymentRequest.PhoneNumber), completePaymentRequest.PhoneNumber },
+                { nameof(completePaymentRequest.Charges), completePaymentRequest.Charges.ToString() },
+            };
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
+            var response = await _customerService.CompleteCustomerPayment(completePaymentRequest);
+
+            if (!response.Success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Errors = new List<string> { "Failed to complete customer payment request." }
+                });
+            }
+
+            return Ok(response);
         }
     }
 }

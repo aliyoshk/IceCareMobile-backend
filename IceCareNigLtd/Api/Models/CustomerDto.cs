@@ -1,4 +1,7 @@
 ﻿using System;
+using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
+
 namespace IceCareNigLtd.Api.Models
 {
     public class CustomerDto
@@ -10,15 +13,10 @@ namespace IceCareNigLtd.Api.Models
         public List<BankInfoDto> Banks { get; set; }
         public decimal DollarRate { get; set; }
         public decimal DollarAmount { get; set; }
-        public decimal TotalDollarAmount { get; set; }
-        public decimal TotalNairaAmount { get; set; }
         public decimal Balance { get; set; }
-    }
-
-    public class CustomersResponseDto
-    {
-        public List<CustomerDto> Customers { get; set; }
-        public int TotalCustomers { get; set; }
+        public decimal Amount { get; set; }
+        public string PaymentCurrency { get; set; }
+        public List<ReceiptDto> PaymentEvidence { get; set; }
     }
 }
 
