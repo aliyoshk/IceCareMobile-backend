@@ -41,15 +41,10 @@ namespace IceCareNigLtd.Core.Services.Users
 
         public async Task<Response<LoginResponse>> LoginUserAsync(LoginDto loginDto)
         {
-            var user = await _userRepository.GetUserByEmailAsync(loginDto.Email);
-            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
-            // Get current Dollar Rate
-            var dollarRate = await _settingsRepository.GetDollarRateAsync();
-            var companyPhone = await _settingsRepository.GetCompanyPhoneNumbersAsync();
-            var companyAccounts = await _settingsRepository.GetCompanyAccountsAsync();
-
             if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
                 return new Response<LoginResponse> { Success = false, Message = "Login details cannot be empty" };
+
+            var user = await _userRepository.GetUserByEmailAsync(loginDto.Email);
 
             if (user == null || !_passwordHasher.VerifyPassword(user.Password, loginDto.Password))
             {
@@ -68,6 +63,12 @@ namespace IceCareNigLtd.Core.Services.Users
                     Message = "User not approved by admin."
                 };
             }
+
+            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
+            // Get current Dollar Rate
+            var dollarRate = await _settingsRepository.GetDollarRateAsync();
+            var companyPhone = await _settingsRepository.GetCompanyPhoneNumbersAsync();
+            var companyAccounts = await _settingsRepository.GetCompanyAccountsAsync();
 
             var balance = 0.0m;
             if (customer != null)
