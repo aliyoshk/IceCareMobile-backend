@@ -46,7 +46,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                 return Unauthorized(new ErrorResponse
                 {
                     Success = false,
-                    Message = "Login failed.",
+                    Message = "Login failed.\nInvalid credentials or user not approved.",
                     Errors = new List<string> { "Invalid credentials or user not approved." }
                 });
             }
