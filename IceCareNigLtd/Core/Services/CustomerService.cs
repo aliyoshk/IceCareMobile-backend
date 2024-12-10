@@ -203,8 +203,6 @@ namespace IceCareNigLtd.Core.Services
 
             if (customer.Id != completePaymentRequest.CustomerId)
                 return new Response<bool> { Success = false, Message = "Customer ID does not correspond with records.", Data = false };
-            else if (customer.PhoneNumber != completePaymentRequest.PhoneNumber)
-                return new Response<bool> { Success = false, Message = "The Phone number enterred does not correspond with saved one.", Data = false };
             
             else if (customer.DollarAmount != completePaymentRequest.DollarAmount)
                 return new Response<bool> { Success = false, Message = "Dollar amount does not match with saved record.", Data = false };

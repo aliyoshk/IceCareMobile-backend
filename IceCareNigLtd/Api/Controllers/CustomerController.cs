@@ -143,7 +143,6 @@ namespace IceCareNigLtd.Api.Controllers
             {
                 { nameof(completePaymentRequest.CustomerId), completePaymentRequest.CustomerId.ToString() },
                 { nameof(completePaymentRequest.DollarAmount), completePaymentRequest.DollarAmount.ToString()},
-                { nameof(completePaymentRequest.PhoneNumber), completePaymentRequest.PhoneNumber },
                 { nameof(completePaymentRequest.Charges), completePaymentRequest.Charges.ToString() },
             };
             foreach (var field in requiredFields)
