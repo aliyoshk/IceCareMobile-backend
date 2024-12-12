@@ -109,8 +109,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 return new Response<string>
                 {
                     Success = false,
-                    Message = "Registration error",
-                    Data = "Email already in user"
+                    Message = "Email already in use",
+                    Data = "Email already in use"
 
                 };
             }
@@ -119,7 +119,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 return new Response<string>
                 {
                     Success = false,
-                    Message = "Registration error",
+                    Message = "Phone number already in use",
                     Data = "Phone number already in use."
                 };
             }

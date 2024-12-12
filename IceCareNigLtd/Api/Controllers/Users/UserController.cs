@@ -126,7 +126,6 @@ namespace IceCareNigLtd.Api.Controllers.Users
                 }
 
                 return Ok(result);
-                //return CreatedAtAction(nameof(Register), new { id = result.Data }, result.Data);
             }
             catch (Exception ex)
             {
