@@ -34,15 +34,15 @@ namespace IceCareNigLtd.Core.Services
         {
             var totalSupplierDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
 
-            if (totalSupplierDollarAmount < customerDto.DollarAmount)
-            {
-                return new Response<bool>
-                {
-                    Success = false,
-                    Message = "Insufficient dollar to continue request",
-                    Data = false
-                };
-            }
+            //if (totalSupplierDollarAmount < customerDto.DollarAmount)
+            //{
+            //    return new Response<bool>
+            //    {
+            //        Success = false,
+            //        Message = "Insufficient dollar to continue request",
+            //        Data = false
+            //    };
+            //}
             if (customerDto.Amount <= 0 && customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
             {
                 return new Response<bool>
