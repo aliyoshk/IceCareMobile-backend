@@ -23,7 +23,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<List<Admin>> GetAdminsAsync()
         {
-            return await _context.Admins.ToListAsync();
+            return await _context.Admins.OrderByDescending(c => c.Date).ToListAsync();
         }
 
         public async Task DeleteAdminAsync(int adminId)

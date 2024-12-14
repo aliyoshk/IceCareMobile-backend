@@ -27,6 +27,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories
         {
             return await _context.Suppliers
                 .Include(s => s.Banks)
+                .OrderByDescending(c => c.Date)
                 .ToListAsync();
         }
 

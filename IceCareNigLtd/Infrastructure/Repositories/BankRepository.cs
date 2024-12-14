@@ -27,13 +27,13 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<List<Bank>> GetBanksAsync()
         {
-            return await _context.Banks.ToListAsync();
+            return await _context.Banks.OrderByDescending(c => c.Date).ToListAsync();
         }
 
         public async Task<List<Bank>> GetBankRecordByNameAsync(string bankName)
         {
             var parsedBank = bankName.ToString();
-            return await _context.Banks.Where(b => b.BankName == parsedBank).ToListAsync() ?? null;
+            return await _context.Banks.OrderByDescending(c => c.Date).Where(b => b.BankName == parsedBank).ToListAsync();
         }
 
         public async Task DeleteBankAsync(int bankId)
