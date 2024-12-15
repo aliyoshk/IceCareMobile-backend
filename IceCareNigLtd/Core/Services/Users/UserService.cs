@@ -220,7 +220,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
 
             var accounts = await _settingsRepository.GetCompanyAccountsAsync();
-            if (accounts.Any())
+            if (!accounts.Any())
                 return new Response<bool> { Success = false, Message = "Company bank(s) detail(s) is/are null" };
 
             foreach (var item in accounts)

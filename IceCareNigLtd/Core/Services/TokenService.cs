@@ -31,7 +31,7 @@ namespace IceCareNigLtd.Core.Services
                     new Claim(ClaimTypes.Email, email),
                     new Claim(ClaimTypes.Name, name),
                 }),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddHours(2),
                 Issuer = _issuer,
                 Audience = _audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
