@@ -223,13 +223,12 @@ namespace IceCareNigLtd.Core.Services.Users
             if (!accounts.Any())
                 return new Response<bool> { Success = false, Message = "Company bank(s) detail(s) is/are null" };
 
-            foreach (var item in accounts)
+
+            var companyBankNames = accounts.Select(a => a.BankName.ToLower().Trim()).ToList();
+            foreach (var bankRequest in transferRequest.BankDetails)
             {
-                foreach(var bankRequest in transferRequest.BankDetails)
-                {
-                    if (!item.BankName.Contains(bankRequest.BankName))
-                        return new Response<bool> { Success = false, Message = "Banks doesn't exist in the system" };
-                }
+                if (!companyBankNames.Contains(bankRequest.BankName.ToLower().Trim()))
+                    return new Response<bool> { Success = false, Message = $"Bank '{bankRequest.BankName}' doesn't exist in the system." };
             }
 
 
