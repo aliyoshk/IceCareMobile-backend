@@ -239,7 +239,7 @@ namespace IceCareNigLtd.Core.Services.Users
             var transactionReference = await GenerateTransactionReference();
             var data = new Transfer
             {
-                TransactionDate = DateTime.Now,
+                TransactionDate = DateTime.UtcNow,
                 DollarAmount = transferRequest.DollarAmount,
                 Description = transferRequest.Description,
                 Channel = Channel.Mobile,

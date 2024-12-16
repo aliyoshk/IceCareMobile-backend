@@ -57,7 +57,7 @@ namespace IceCareNigLtd.Core.Services
                 //Password = _passwordHasher.HashPassword(adminDto.Password),
                 Password = adminDto.Password,
                 Role = "Normal",
-                Date = DateTime.Now
+                Date = DateTime.UtcNow
             };
 
             await _adminRepository.AddAdminAsync(admin);

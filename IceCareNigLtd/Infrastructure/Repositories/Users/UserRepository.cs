@@ -96,8 +96,21 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
 
         public async Task FundTransferAsync(Transfer transfer)
         {
-            await _context.Transfers.AddAsync(transfer);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Transfers.AddAsync(transfer);
+                await _context.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving transfer: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task ApproveTransferAsync(Transfer user)
