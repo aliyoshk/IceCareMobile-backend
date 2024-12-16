@@ -6,7 +6,6 @@ using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces.Users;
-using IceCareNigLtd.Infrastructure.Repositories;
 using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Core.Services
@@ -257,10 +256,12 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = users.DollarAmount,
                 TransactionDate = users.TransactionDate,
                 CustomerEmail = users.Email,
-                BankDetails = users.BankDetails.Select(b => new BankInfoDto
+                BankDetails = users.BankDetails.Select(b => new TransferDetails
                 {
                     BankName = b.BankName.ToString(),
-                    AmountTransferred = b.TransferredAmount
+                    AmountTransferred = b.TransferredAmount,
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber
                 }).ToList(),
                 TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
                 {
@@ -293,10 +294,12 @@ namespace IceCareNigLtd.Core.Services
                 CustomerEmail = users.Email,
                 Balance = users.Balance,
                 TransferReference = users.TransferReference,
-                BankDetails = users.BankDetails.Select(b => new BankInfoDto
+                BankDetails = users.BankDetails.Select(b => new TransferDetails
                 {
                     BankName = b.BankName.ToString(),
-                    AmountTransferred = b.TransferredAmount
+                    AmountTransferred = b.TransferredAmount,
+                    AccountName = b.BankName,
+                    AccountNumber = b.AccountNumber
                 }).ToList(),
                 TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
                 {
@@ -408,11 +411,13 @@ namespace IceCareNigLtd.Core.Services
                 {
                     Receipts = e.Receipts
                 }).ToList() ?? new List<TransferEvidence>(),
-                BankDetails = user.BankDetails?.Select(b => new BankInfoDto
+                BankDetails = user.BankDetails?.Select(b => new TransferDetails
                 {
                     BankName = b.BankName.ToString(),
-                    AmountTransferred = b.TransferredAmount
-                }).ToList() ?? new List<BankInfoDto>(),
+                    AmountTransferred = b.TransferredAmount,
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber
+                }).ToList() ?? new List<TransferDetails>(),
             }).ToList();
 
             return new Response<List<TransferResponse>> { Success = true, Data = details };

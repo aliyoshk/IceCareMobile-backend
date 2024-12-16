@@ -30,6 +30,8 @@ namespace IceCareNigLtd.Core.Entities.Users
         public int Id { get; set; }
         public string BankName { get; set; }
         public decimal TransferredAmount { get; set; }
+        public string AccountName { get; set; }
+        public string AccountNumber { get; set; }
 
         public int TransferId { get; set; }
         public Transfer Transfer { get; set; }

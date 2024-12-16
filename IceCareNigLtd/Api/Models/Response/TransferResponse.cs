@@ -10,7 +10,7 @@ namespace IceCareNigLtd.Api.Models.Response
         public string CustomerName { get; set; }
         public decimal DollarAmount { get; set; }
         public string Description { get; set; }
-        public List<BankInfoDto> BankDetails { get; set; }
+        public List<TransferDetails> BankDetails { get; set; }
         public List<TransferEvidence> TransferEvidence { get; set; }
         public DateTime TransactionDate { get; set; }
         public string CustomerEmail { get; set; }
@@ -21,6 +21,14 @@ namespace IceCareNigLtd.Api.Models.Response
         public decimal Balance { get; set; }
         public string TransferReference { get; set; }
         public string PhoneNumber { get; set; }
+    }
+
+    public class TransferDetails
+    {
+        public string BankName { get; set; }
+        public decimal AmountTransferred { get; set; }
+        public string AccountName { get; set; }
+        public string AccountNumber { get; set; }
     }
 }
 

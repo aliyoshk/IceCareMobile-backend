@@ -257,6 +257,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 {
                     TransferredAmount = b.TransferredAmount,
                     BankName = b.BankName.ToString(),
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber
                 }).ToList(),
                 TransferEvidence = transferRequest.TransferEvidence.Select(e => new EvidenceOfTransfer
                 {
