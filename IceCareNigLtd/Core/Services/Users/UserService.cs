@@ -284,7 +284,7 @@ namespace IceCareNigLtd.Core.Services.Users
 
             var customer = await _customerRepository.GetCustomerByIdAsync(user.Id) ?? await _customerRepository.GetCustomerByEmailAsync(user.Email);
             if (customer == null)
-                return new Response<bool> { Success = false, Message = "Customer not found", Data = false };
+                return new Response<bool> { Success = false, Message = "Customer details not found\nYou need to do atleast one transfer", Data = false };
 
             if (customer.Balance <= 0)
                 return new Response<bool> { Success = false, Message = "You account balance is 0", Data = false };
@@ -318,16 +318,16 @@ namespace IceCareNigLtd.Core.Services.Users
 
         public async Task<Response<bool>> ThirdPartyPaymentAsync(ThirdPartyPaymentRequest thirdPartyPaymentRequest)
         {
+            if (string.IsNullOrEmpty(thirdPartyPaymentRequest.CustomerEmail))
+                return new Response<bool> { Success = false, Message = "Email not passed", Data = false };
+
             var user = await _userRepository.GetUserByEmailAsync(thirdPartyPaymentRequest.CustomerEmail);
             if (user == null)
                 return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
 
-            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id);
+            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id) ?? await _customerRepository.GetCustomerByEmailAsync(user.Email);
             if (customer == null)
-                return new Response<bool> { Success = false, Message = "Customer not found", Data = false };
-
-            if (string.IsNullOrEmpty(thirdPartyPaymentRequest.CustomerEmail))
-                return new Response<bool> { Success = false, Message = "Email not passed", Data = false };
+                return new Response<bool> { Success = false, Message = "Customer details not found\nYou need to do atleast one transfer", Data = false };
 
             var data = new ThirdPartyPayment
             {
