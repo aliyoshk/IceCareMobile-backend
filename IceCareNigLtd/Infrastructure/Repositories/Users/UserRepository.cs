@@ -100,7 +100,6 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             {
                 await _context.Transfers.AddAsync(transfer);
                 await _context.SaveChangesAsync();
-
             }
             catch (Exception ex)
             {

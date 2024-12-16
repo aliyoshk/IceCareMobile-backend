@@ -1,5 +1,6 @@
 ﻿using System;
 using IceCareNigLtd.Core.Entities;
+using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Infrastructure.Data;
 using IceCareNigLtd.Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +18,20 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task AddAdminAsync(Admin admin)
         {
-            await _context.Admins.AddAsync(admin);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Admins.AddAsync(admin);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding admin: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task<List<Admin>> GetAdminsAsync()

@@ -39,30 +39,42 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<AdminDto>> AddAdminAsync(AdminDto adminDto)
         {
-            // Check if an admin with the same email already exists
-            var existingAdmin = await _adminRepository.GetAdminByUsernameAsync(adminDto.Email);
-            if (existingAdmin != null)
+            try
             {
-                return new Response<AdminDto>
+                // Check if an admin with the same email already exists
+                var existingAdmin = await _adminRepository.GetAdminByUsernameAsync(adminDto.Email);
+                if (existingAdmin != null)
                 {
-                    Success = false,
-                    Message = "An admin with this email already exists",
-                    Data = null
+                    return new Response<AdminDto>
+                    {
+                        Success = false,
+                        Message = "An admin with this email already exists",
+                        Data = null
+                    };
+                }
+                var admin = new Admin
+                {
+                    Name = adminDto.Name,
+                    Email = adminDto.Email,
+                    //Password = _passwordHasher.HashPassword(adminDto.Password),
+                    Password = adminDto.Password,
+                    Role = "Normal",
+                    Date = DateTime.UtcNow
                 };
+
+                await _adminRepository.AddAdminAsync(admin);
+
+                return new Response<AdminDto> { Success = true, Message = "Admin added successfully", Data = adminDto };
             }
-            var admin = new Admin
+            catch (Exception ex)
             {
-                Name = adminDto.Name,
-                Email = adminDto.Email,
-                //Password = _passwordHasher.HashPassword(adminDto.Password),
-                Password = adminDto.Password,
-                Role = "Normal",
-                Date = DateTime.UtcNow
-            };
-
-            await _adminRepository.AddAdminAsync(admin);
-
-            return new Response<AdminDto> { Success = true, Message = "Admin added successfully", Data = adminDto };
+                Console.WriteLine($"Error adding admin: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task<Response<List<AdminDto>>> GetAdminsAsync()
