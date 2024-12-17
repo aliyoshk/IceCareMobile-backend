@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.NetworkInformation;
+using System.Threading.Tasks;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
@@ -85,7 +86,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 Status = user.Status,
                 AccountNumber = user.AccountNumber,
                 Phone = user.Phone,
-                AccountBalance = balance.ToString(),
+                AccountBalance = balance.ToString("F2"),
                 CompanyNumber = companyPhone,
                 DollarRate = dollarRate,
                 CompanyAccounts = companyAccounts
@@ -256,7 +257,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 BankDetails = transferRequest.BankDetails.Select(b => new TransferBank
                 {
                     TransferredAmount = b.TransferredAmount,
-                    BankName = b.BankName.ToString(),
+                    BankName = b.BankName,
                     AccountName = b.AccountName,
                     AccountNumber = b.AccountNumber
                 }).ToList(),
@@ -363,6 +364,64 @@ namespace IceCareNigLtd.Core.Services.Users
                 refNumber = Random.Shared.Next(100000, 999999);
             while (await _userRepository.IsTransferRefrenceExistsAsync("ICNL" + refNumber.ToString()));
             return $"ICNL{refNumber}";
+        }
+
+        public async Task<Response<string>> GetTransferStatus(string email)
+        {
+            var history = await _userRepository.GetTransactionHistory(email);
+
+            if (!history.Any())
+                return new Response<string> { Success = false, Message = "User details not found", Data = "User record is null" };
+            
+            bool hasPendingTransfer = history.Any(item => item.Status.ToLower().Contains("pending"));
+            if (hasPendingTransfer)
+            {
+                return new Response<string>
+                {
+                    Success = true,
+                    Message = "Once your transfer is confirmed, you will be redirected to view and download transaction(s) related documents.",
+                    Data = "Your transaction is being processed."
+                };
+            }
+
+            return new Response<string>
+            {
+                Success = true,
+                Message = "You don’t have any pending transfer that required attention.\nCheck transaction history to view all your confirmed transfer receipts",
+                Data = "All transactions have been confirmed"
+            };
+        }
+
+        public async Task<Response<List<TransactionHistoryResponse>>> GetTransactionHistory(string email)
+        {
+            var history = await _userRepository.GetTransactionHistory(email);
+
+            var transactionHistory = history.Select(h => new TransactionHistoryResponse
+            {
+                Description = h.Description,
+                TotalAmount = h.BankDetails.Sum(b => b.TransferredAmount).ToString("F2"),
+                TransactionDate = h.TransactionDate,
+                Category = h.Category.ToString(),
+                AccountDetails = h.BankDetails.Select(b => new AccountDetails
+                {
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber,
+                    Amount = b.TransferredAmount.ToString("F2"),
+                    BankName = b.BankName
+                }).ToList()
+            }).ToList();
+
+            return new Response<List<TransactionHistoryResponse>>
+            {
+                Success = true,
+                Message = "Success",
+                Data = transactionHistory
+            };
+        }
+
+        public Task<Response<string>> GetRemitStatus(string email)
+        {
+            throw new NotImplementedException();
         }
     }
 }

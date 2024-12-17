@@ -35,6 +35,9 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task<List<ThirdPartyPayment>> GetThirdPartyTransfers();
         Task<ThirdPartyPayment> GetThirdPartyPaymentById(int id);
         Task ThirdPartyTransferCompleted(ThirdPartyPayment thirdPartyPayment);
+
+        Task <List<Transfer>> GetTransactionHistory(string email);
+        Task<Transfer> GetRemitStatus(string email);
     }
 }
 

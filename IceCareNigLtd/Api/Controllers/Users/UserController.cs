@@ -327,6 +327,51 @@ namespace IceCareNigLtd.Api.Controllers.Users
             }
             return Ok(response);
         }
+
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("CheckTransferStatus")]
+        public async Task<IActionResult> CheckTransferStatus(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed"});
+
+            var result = await _userService.GetTransferStatus(email);
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found",
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("GetTransactionHistory")]
+        public async Task<IActionResult> GetTransactionHistory(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed" });
+
+            var result = await _userService.GetTransactionHistory(email);
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No transaction history found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
     }
 }
 

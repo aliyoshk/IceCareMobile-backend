@@ -194,6 +194,19 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             _context.ThirdPartyPayments.Update(thirdPartyPayment);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Transfer>> GetTransactionHistory(string email)
+        {
+            return await _context.Transfers
+                .Where(t => t.Email == email)
+                 .Include(t => t.BankDetails)
+                 .ToListAsync();
+        }
+
+        public Task<Transfer> GetRemitStatus(string email)
+        {
+            return null;
+        }
     }
 }
 
