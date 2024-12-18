@@ -2,6 +2,7 @@
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Interfaces.Users;
 using IceCareNigLtd.Core.Utils;
@@ -27,6 +28,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(Response<LoginResponse>), 200)]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
@@ -59,6 +61,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Route("Register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> Register([FromBody] RegistrationDto registrationDto)
         {
             if (registrationDto == null)
@@ -143,9 +146,10 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Authorize]
         [Route("ResetPassword")]
-        public async Task<IActionResult> UpdatePhoneNumbers([FromBody] ResetPasswordRequest resetPasswordRequest)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest resetPasswordRequest)
         {
             var requiredFields = new Dictionary<string, string>
             {
@@ -185,6 +189,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("FundTransfer")]
         public async Task<IActionResult> FundTransfer([FromBody] TransferRequest transferRequest)
         {
@@ -252,6 +257,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("AccountBalancePayment")]
         public async Task<IActionResult> AccountPayment([FromBody] AccountPaymentRequest accountPaymentRequest)
         {
@@ -291,6 +297,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("ThirdPartyPayment")]
         public async Task<IActionResult> ThirdPartyPayment([FromBody] ThirdPartyPaymentRequest thirdPartyPaymentRequest)
         {
@@ -332,6 +339,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("CheckTransferStatus")]
         public async Task<IActionResult> CheckTransferStatus(string email)
         {
@@ -339,7 +347,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                 return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed"});
 
             var result = await _userService.GetTransferStatus(email);
-            if (result.Data == null || !result.Data.Any())
+            if (!result.Data)
             {
                 return NotFound(new ErrorResponse
                 {
@@ -354,6 +362,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<TransactionHistoryResponse>), 200)]
         [Route("GetTransactionHistory")]
         public async Task<IActionResult> GetTransactionHistory(string email)
         {

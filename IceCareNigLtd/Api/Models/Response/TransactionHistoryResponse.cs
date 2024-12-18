@@ -6,7 +6,7 @@ namespace IceCareNigLtd.Api.Models.Response
 {
 	public class TransactionHistoryResponse
 	{
-        public DateTime TransactionDate { get; set; }
+        public string TransactionDate { get; set; }
         public string TotalAmount { get; set; }
         public string Description { get; set; }
         public string Category { get; set; }

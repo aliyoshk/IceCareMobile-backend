@@ -366,29 +366,29 @@ namespace IceCareNigLtd.Core.Services.Users
             return $"ICNL{refNumber}";
         }
 
-        public async Task<Response<string>> GetTransferStatus(string email)
+        public async Task<Response<bool>> GetTransferStatus(string email)
         {
             var history = await _userRepository.GetTransactionHistory(email);
 
             if (!history.Any())
-                return new Response<string> { Success = false, Message = "User details not found", Data = "User record is null" };
+                return new Response<bool> { Success = false, Message = "User details not found", Data = false };
             
             bool hasPendingTransfer = history.Any(item => item.Status.ToLower().Contains("pending"));
             if (hasPendingTransfer)
             {
-                return new Response<string>
+                return new Response<bool>
                 {
                     Success = true,
                     Message = "Once your transfer is confirmed, you will be redirected to view and download transaction(s) related documents.",
-                    Data = "Your transaction is being processed."
+                    Data = true
                 };
             }
 
-            return new Response<string>
+            return new Response<bool>
             {
                 Success = true,
                 Message = "You don’t have any pending transfer that required attention.\nCheck transaction history to view all your confirmed transfer receipts",
-                Data = "All transactions have been confirmed"
+                Data = true
             };
         }
 
@@ -400,7 +400,7 @@ namespace IceCareNigLtd.Core.Services.Users
             {
                 Description = h.Description,
                 TotalAmount = h.BankDetails.Sum(b => b.TransferredAmount).ToString("F2"),
-                TransactionDate = h.TransactionDate,
+                TransactionDate = h.TransactionDate.ToString(),
                 Category = h.Category.ToString(),
                 AccountDetails = h.BankDetails.Select(b => new AccountDetails
                 {
