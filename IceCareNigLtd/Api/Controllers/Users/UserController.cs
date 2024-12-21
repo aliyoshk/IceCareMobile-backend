@@ -362,7 +362,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(Response<TransactionHistoryResponse>), 200)]
+        [ProducesResponseType(typeof(Response<List<TransactionHistoryResponse>>), 200)]
         [Route("GetTransactionHistory")]
         public async Task<IActionResult> GetTransactionHistory(string email)
         {
