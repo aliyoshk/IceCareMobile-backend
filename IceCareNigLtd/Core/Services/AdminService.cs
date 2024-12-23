@@ -370,6 +370,7 @@ namespace IceCareNigLtd.Core.Services
                 {
                     BankName = bankInfo.BankName.ToString(),
                     Date = DateTime.UtcNow,
+                    EntityName = user.CustomerName,
                     PersonType = PersonType.Customer,
                     ExpenseType = CreditType.Credit,
                     Amount = bankInfo.AmountTransferred,
