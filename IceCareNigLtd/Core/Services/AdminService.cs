@@ -340,7 +340,7 @@ namespace IceCareNigLtd.Core.Services
             var customer = new Customer
             {
                 Name = user.CustomerName,
-                Date = user.TransactionDate,
+                Date = DateTime.UtcNow,
                 ModeOfPayment = ModeOfPayment.Transfer,
                 DollarRate = user.DollarRate,
                 DollarAmount = user.DollarAmount,
