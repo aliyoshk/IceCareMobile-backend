@@ -369,7 +369,7 @@ namespace IceCareNigLtd.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
         [Route("CompleteThirdPartyTransfer")]
         [ProducesResponseType(StatusCodes.Status200OK)]

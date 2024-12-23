@@ -34,6 +34,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         {
             return await _context.Registrations
                 .Where(u => u.Status == status)
+                .OrderByDescending(t => t.Date)
                 .ToListAsync();
         }
 
@@ -121,6 +122,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<Transfer> GetTransferByIdAsync(int id)
         {
             return await _context.Transfers
+                .OrderByDescending(t => t.TransactionDate)
                 .Include(t => t.BankDetails)
                 .Include(e => e.TransferEvidence)
                 .FirstAsync(t => t.Id == id);
@@ -133,6 +135,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             //return await _context.Transfers.Where(t => t.Status == status).ToListAsync();
             return await _context.Transfers
                 .Where(t => t.Status == status)
+                .OrderByDescending(t => t.TransactionDate)
                 .Include(t => t.BankDetails)
                 .Include(t => t.TransferEvidence)
                 .ToListAsync();
@@ -187,7 +190,10 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
 
         public async Task<List<ThirdPartyPayment>> GetThirdPartyTransfers() => await _context.ThirdPartyPayments.ToListAsync();
 
-        public async Task<ThirdPartyPayment> GetThirdPartyPaymentById(int id) => await _context.ThirdPartyPayments.FindAsync(id);
+        public async Task<ThirdPartyPayment> GetThirdPartyPaymentById(int id)
+        {
+            return await _context.ThirdPartyPayments.FindAsync(id);
+        }
 
         public async Task ThirdPartyTransferCompleted(ThirdPartyPayment thirdPartyPayment)
         {
@@ -199,8 +205,9 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         {
             return await _context.Transfers
                 .Where(t => t.Email == email)
-                 .Include(t => t.BankDetails)
-                 .ToListAsync();
+                .OrderByDescending(t => t.TransactionDate)
+                .Include(t => t.BankDetails)
+                .ToListAsync();
         }
 
         public Task<Transfer> GetRemitStatus(string email)

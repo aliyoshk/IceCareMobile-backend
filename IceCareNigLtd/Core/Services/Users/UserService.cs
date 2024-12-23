@@ -313,7 +313,7 @@ namespace IceCareNigLtd.Core.Services.Users
             return new Response<bool>
             {
                 Success = true,
-                Message = "Your request has been successfully submitted for admin to verified. You will be notified once confirmed" +
+                Message = "Your request has been successfully submitted for admin to verify. You will be notified once confirmed" +
                 ".\n\nYou can confirmed the status of your transfer in the dashboard\n",
                 Data = true
             };
