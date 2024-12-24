@@ -389,6 +389,49 @@ namespace IceCareNigLtd.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet]
+        [Authorize]
+        [Route("GetAccountTopUps")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<ThirdPartyPaymentResponse>>), 200)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetAccountTopUps()
+        {
+            var result = await _adminService.GetAccountTopUpsAsync();
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("ConfirmAccountTopUp")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ConfirmAccountTopUp(ConfirmationRequest request)
+        {
+            var result = await _adminService.ConfirmAccountTopUp(request);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to approved account top up." }
+                });
+            }
+
+            return Ok(result);
+        }
     }
 }
 

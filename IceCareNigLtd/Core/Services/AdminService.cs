@@ -246,7 +246,7 @@ namespace IceCareNigLtd.Core.Services
             {
                 Id = users.Id,
                 CustomerName = users.CustomerName,
-                Balance = users.Balance,
+                Balance = users.BalanceNaira,
                 TransferReference = users.TransferReference,
                 Status = users.Status,
                 ApproverName = users.Approver,
@@ -292,7 +292,7 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = users.DollarAmount,
                 TransactionDate = users.TransactionDate,
                 CustomerEmail = users.Email,
-                Balance = users.Balance,
+                Balance = users.BalanceNaira,
                 TransferReference = users.TransferReference,
                 BankDetails = users.BankDetails.Select(b => new TransferDetails
                 {
@@ -345,7 +345,7 @@ namespace IceCareNigLtd.Core.Services
                 DollarRate = user.DollarRate,
                 DollarAmount = user.DollarAmount,
                 TotalNairaAmount = amount,
-                Balance = user.Balance,
+                Balance = user.BalanceNaira,
                 PhoneNumber = userRecord.Phone ?? "",
                 PaymentCurrency = PaymentCurrency.Naira,
                 Channel = Channel.Mobile,
@@ -397,7 +397,7 @@ namespace IceCareNigLtd.Core.Services
             {
                 Id = user.Id,
                 CustomerName = user.CustomerName,
-                Balance = user.Balance,
+                Balance = user.BalanceNaira,
                 TransferReference = user.TransferReference,
                 ApproverName = user.Approver,
                 DollarAmount = user.DollarAmount,
@@ -436,7 +436,7 @@ namespace IceCareNigLtd.Core.Services
                 BankName = t.BankName,
                 Status = t.Status,
                 CustomerAccount = t.CustomerAccount,
-                Balance = t.Balance,
+                Balance = t.BalanceNaira,
                 Channel = t.Channel.ToString(),
                 CustomerName = t.CustomerName
             }).ToList();
@@ -463,6 +463,66 @@ namespace IceCareNigLtd.Core.Services
                 Success = true,
                 Message = "Success",
                 Data = "User transfer has been confirmed"
+            };
+        }
+
+        public async Task<Response<List<AccountTopUpResponse>>> GetAccountTopUpsAsync()
+        {
+            var response = await _userRepository.GetAccountTopUpsAsync();
+            var accountTopUps = response.Select(t => new AccountTopUpResponse
+            {
+                Amount = t.BalanceNaira > 0 ? t.BalanceNaira : t.BalanceDollar,
+                CustomerName = t.Name,
+                Currency = t.Currency.ToString(),
+                Email = t.Email,
+                Phone = t.Phone,
+                Description = t.Description,
+                BankDetails = t.TransferDetails.Select(b => new BankDetails
+                {
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber,
+                    TransferredAmount = b.TransferredAmount,
+                    BankName = b.BankName
+                }).ToList(),
+                TransferEvidence = t.TransferEvidence?.Select(e => new TransferEvidence
+                {
+                    Receipts = e.Receipts
+                }).ToList() ?? new List<TransferEvidence>(),
+            }).ToList();
+
+            return new Response<List<AccountTopUpResponse>>
+            {
+                Success = true,
+                Message = "Success",
+                Data = accountTopUps
+            };
+        }
+
+        public async Task<Response<string>> ConfirmAccountTopUp(ConfirmationRequest request, string adminName = null)
+        {
+            var user = await _userRepository.GetUserAccountTopUpAsync(request.Id);
+            if (user == null)
+                return new Response<string> { Success = false, Message = "User not found.", Data = "User not found." };
+            if (user.Email != request.Email)
+                return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
+            if (user.Id != request.Id)
+                return new Response<string> { Success = false, Message = "Id not found", Data = "Email not found." };
+            var userRecord = await _userRepository.GetUserByEmailAsync(user.Email);
+
+            if (request.Confirmed)
+            {
+                user.Status = "Confirmed";
+                user.Approver = adminName;
+                await _userRepository.ConfirmAccountTopUp(user);
+            }
+            else
+                return new Response<string> { Success = false, Message = "Error proceeding with confirmation.", Data = "Invalid Action" };
+
+            return new Response<string>
+            {
+                Success = true,
+                Message = "Success",
+                Data = $"User top up status has been confirmed by {adminName}."
             };
         }
     }

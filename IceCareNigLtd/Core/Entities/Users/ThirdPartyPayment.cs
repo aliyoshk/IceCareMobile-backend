@@ -13,7 +13,8 @@ namespace IceCareNigLtd.Core.Entities.Users
         public string Description { get; set; }
         public string CustomerName { get; set; }
         public string CustomerAccount { get; set; }
-        public decimal Balance { get; set; }
+        public decimal BalanceNaira { get; set; }
+        public decimal BalanceDollar { get; set; }
         public Channel Channel { get; set; }
         public string Status { get; set; }
     }

@@ -31,6 +31,9 @@ namespace IceCareNigLtd.Infrastructure.Data
         public DbSet<EvidenceOfTransfer> EvidenceOfTransfers { get; set; }
         public DbSet<AccountPayment> AccountPayments { get; set; }
         public DbSet<ThirdPartyPayment> ThirdPartyPayments { get; set; }
+        public DbSet<AccountTopUp> AccountTopUps { get; set; }
+        public DbSet<TransferDetail> TransferDetails { get; set; }
+        public DbSet<TopUpEvidence> TopUpEvidences { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

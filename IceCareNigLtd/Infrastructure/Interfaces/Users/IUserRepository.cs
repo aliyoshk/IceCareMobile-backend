@@ -29,12 +29,21 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task<bool> IsTransferRefrenceExistsAsync(string transactionReference);
         Task AccountPaymentAsync(AccountPayment accountPayment);
         Task ThirdPartyPaymentAsync(ThirdPartyPayment thirdPartyPayment);
-        Task SubtractTransferAmountAsync(string email, decimal amount);
+        Task SubtractNairaTransferAmountAsync(string email, decimal amount);
+        Task SubtractDollarTransferAmountAsync(string email, decimal amount);
+        Task AddNairaTransferAmountAsync(string email, decimal amount);
+        Task AddDollarTransferAmountAsync(string email, decimal amount);
         Task DeleteCustomerTransferRecordAsync(int userId);
+
 
         Task<List<ThirdPartyPayment>> GetThirdPartyTransfers();
         Task<ThirdPartyPayment> GetThirdPartyPaymentById(int id);
         Task ThirdPartyTransferCompleted(ThirdPartyPayment thirdPartyPayment);
+
+        Task TopUpAccountAsync(AccountTopUp accountTopUp);
+        Task<List<AccountTopUp>> GetAccountTopUpsAsync();
+        Task<AccountTopUp> GetUserAccountTopUpAsync(int id);
+        Task ConfirmAccountTopUp (AccountTopUp accountTopUp);
 
         Task <List<Transfer>> GetTransactionHistory(string email);
         Task<Transfer> GetRemitStatus(string email);

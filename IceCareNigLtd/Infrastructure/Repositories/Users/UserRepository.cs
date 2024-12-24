@@ -158,7 +158,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             await _context.SaveChangesAsync();
         }
 
-        public async Task SubtractTransferAmountAsync(string email, decimal amount)
+        public async Task SubtractNairaTransferAmountAsync(string email, decimal amount)
         {
             var user = await _context.Transfers.FindAsync(email);
             if (user != null)
@@ -166,12 +166,62 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
                 if (amount <= 0)
                     return;
 
-                if (user.Balance >= amount)
+                if (user.BalanceNaira >= amount)
                 {
-                    user.Balance -= amount;
+                    user.BalanceNaira -= amount;
                 }
                 else
                     return;
+
+                _context.Transfers.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task SubtractDollarTransferAmountAsync(string email, decimal amount)
+        {
+            var user = await _context.Transfers.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                if (user.DollarAmount >= amount)
+                {
+                    user.DollarAmount -= amount;
+                }
+                else
+                    return;
+
+                _context.Transfers.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task AddNairaTransferAmountAsync(string email, decimal amount)
+        {
+            var user = await _context.Transfers.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                user.DollarAmount += amount;
+
+                _context.Transfers.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task AddDollarTransferAmountAsync(string email, decimal amount)
+        {
+            var user = await _context.Transfers.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                user.DollarAmount += amount;
 
                 _context.Transfers.Update(user);
                 await _context.SaveChangesAsync();
@@ -198,6 +248,43 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task ThirdPartyTransferCompleted(ThirdPartyPayment thirdPartyPayment)
         {
             _context.ThirdPartyPayments.Update(thirdPartyPayment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task TopUpAccountAsync(AccountTopUp accountTopUp)
+        {
+            try
+            {
+                await _context.AccountTopUps.AddAsync(accountTopUp);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving top up: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
+        }
+
+        public async Task<List<AccountTopUp>> GetAccountTopUpsAsync()
+        {
+            //return await _context.AccountTopUps.ToListAsync();
+            return await _context.AccountTopUps
+                .OrderByDescending(t => t.TransactionDate)
+                .Include(t => t.TransferDetails)
+                .Include(t => t.TransferEvidence)
+                .ToListAsync();
+        }
+
+        public async Task<AccountTopUp> GetUserAccountTopUpAsync(int id) => await _context.AccountTopUps.FindAsync(id);
+        
+
+        public async Task ConfirmAccountTopUp(AccountTopUp accountTopUp)
+        {
+            _context.AccountTopUps.Update(accountTopUp);
             await _context.SaveChangesAsync();
         }
 

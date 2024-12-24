@@ -245,7 +245,9 @@ namespace IceCareNigLtd.Core.Services.Users
                 Description = transferRequest.Description,
                 Channel = Channel.Mobile,
                 CustomerAccount = user.AccountNumber,
-                Balance = 0,
+                BalanceNaira = 0,
+                BalanceDollar = 0,
+                Currency = PaymentCurrency.Naira,
                 CustomerName = user.FullName,
                 Email = user.Email,
                 DollarRate = transferRequest.DollarRate,
@@ -295,7 +297,7 @@ namespace IceCareNigLtd.Core.Services.Users
             if (customer.Balance < accountPaymentRequest.NairaAmount)
                 return new Response<bool> { Success = false, Message = "Insufficient account balance", Data = false };
 
-            await _userRepository.SubtractTransferAmountAsync(accountPaymentRequest.CustomerEmail, accountPaymentRequest.NairaAmount);
+            await _userRepository.SubtractNairaTransferAmountAsync(accountPaymentRequest.CustomerEmail, accountPaymentRequest.NairaAmount);
 
             var data = new AccountPayment
             {
@@ -303,7 +305,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 DollarAmount = accountPaymentRequest.DollarAmount,
                 Description = accountPaymentRequest.Description,
                 CustomerAccount = customer.AccountNumber,
-                Balance = customer.Balance,
+                BalanceNaira = customer.Balance,
+                BalanceDollar = 0,
                 CustomerName = customer.Name,
                 Channel = Channel.WalkIn
             };
@@ -340,7 +343,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 BankName = thirdPartyPaymentRequest.BankName,
                 Description = thirdPartyPaymentRequest.Description,
                 CustomerAccount = customer.AccountNumber,
-                Balance = customer.Balance,
+                BalanceNaira = customer.Balance,
+                BalanceDollar = 0,
                 CustomerName = customer.Name,
                 Channel = Channel.WalkIn,
                 Status = "Pending"
@@ -352,6 +356,80 @@ namespace IceCareNigLtd.Core.Services.Users
             {
                 Success = true,
                 Message = " Your transfer details has been successful submitted\nYou’ll be notified once the transfer has been made.",
+                Data = true
+            };
+        }
+
+        public async Task<Response<bool>> TopUpAccountAsync(AccoutTopUpRequest accoutTopUpRequest)
+        {
+            if (string.IsNullOrEmpty(accoutTopUpRequest.Email))
+                return new Response<bool> { Success = false, Message = "Email not passed", Data = false };
+
+            var user = await _userRepository.GetUserByEmailAsync(accoutTopUpRequest.Email);
+            if (user == null)
+                return new Response<bool> { Success = false, Message = "Email address is null", Data = false };
+
+            var customer = await _customerRepository.GetCustomerByIdAsync(user.Id) ?? await _customerRepository.GetCustomerByEmailAsync(user.Email);
+            if (customer == null)
+                return new Response<bool> { Success = false, Message = "Customer details not found\nYou need to do atleast one transfer", Data = false };
+            
+
+            var errorMessages = new List<string>();
+            foreach (var bank in accoutTopUpRequest.BankDetails)
+            {
+                if (string.IsNullOrEmpty(bank.BankName))
+                    errorMessages.Add($"Select Bank, field cannot be empty");
+
+                if (bank.TransferredAmount <= 0)
+                    errorMessages.Add($"The amount transferred for {bank.BankName} should be greather than 0");
+
+                if (string.IsNullOrEmpty(bank.AccountNumber))
+                    errorMessages.Add($"The account number for {bank.BankName} is missing");
+            }
+
+            if (errorMessages.Any())
+                return new Response<bool> { Success = false, Message = string.Join("; ", errorMessages) };
+
+            var currency = PaymentCurrency.Dollar;
+            decimal amount = 0;
+            if (accoutTopUpRequest.Currency.ToLower().Contains("naira"))
+            {
+                currency = PaymentCurrency.Naira;
+            }
+            var transactionReference = await GenerateTransactionReference();
+
+            var data = new AccountTopUp
+            {
+                Currency = currency,
+                BalanceDollar = currency == PaymentCurrency.Naira ? accoutTopUpRequest.BankDetails.Sum(a => a.TransferredAmount) : 0,
+                BalanceNaira = currency == PaymentCurrency.Dollar ? accoutTopUpRequest.BankDetails.Sum(a => a.TransferredAmount) : 0,
+                Status = "Pending",
+                TransactionDate = DateTime.UtcNow,
+                Description = accoutTopUpRequest.Description,
+                Reference = transactionReference,
+                Category = Category.AccountTopUp,
+                Email = accoutTopUpRequest.Email,
+                Name = customer.Name,
+                AccountNo = customer.AccountNumber,
+                Phone = customer.PhoneNumber,
+                TransferDetails = accoutTopUpRequest.BankDetails.Select(b => new TransferDetail
+                {
+                    TransferredAmount = b.TransferredAmount,
+                    BankName = b.BankName,
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber,
+                }).ToList(),
+                TransferEvidence = accoutTopUpRequest.TransferEvidence.Select(e => new TopUpEvidence
+                {
+                    Receipts = e.Receipts
+                }).ToList()
+            };
+            await _userRepository.TopUpAccountAsync(data);
+
+            return new Response<bool>
+            {
+                Success = true,
+                Message = "Your account top up request have successfully been submitted.\nThe value will reflect on dashboard once admin confirmed the remittance",
                 Data = true
             };
         }

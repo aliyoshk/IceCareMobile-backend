@@ -335,6 +335,58 @@ namespace IceCareNigLtd.Api.Controllers.Users
             return Ok(response);
         }
 
+
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
+        [Route("AccountTopUp")]
+        public async Task<IActionResult> AccountTopUp([FromBody] AccoutTopUpRequest request)
+        {
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(request.Email), request.Email },
+                { nameof(request.Phone), request.Phone }
+            };
+
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
+            if (request.BankDetails.Count > request.TransferEvidence.Count)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = $"You are expected to upload {request.BankDetails.Count} receipt(s) for all bank transfer",
+                    Data = false
+                });
+            }
+
+            var response = await _userService.TopUpAccountAsync(request);
+            if (!response.Success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Data = false
+                });
+            }
+            return Ok(response);
+        }
+
+
         [HttpGet]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
