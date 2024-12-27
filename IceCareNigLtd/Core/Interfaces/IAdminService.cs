@@ -21,7 +21,7 @@ namespace IceCareNigLtd.Core.Interfaces
         Task<Response<string>> ChangeUserStatusAsync(ChangeUserStatusRequest request, string adminName = null);
         Task<Response<List<UserDto>>> GetApprovedUsersAsync();
         Task<Response<List<UserDto>>> GetRejectedUsersAsync();
-
+        Task<Response<object>> DeleteUserAsync(int userId);
         Task<Response<List<TransferResponse>>> GetPendingTransferAsync();
         Task<Response<List<TransferResponse>>> GetApprovedTransferAsync();
         Task<Response<string>> ConfirmTransferAsync(ConfirmationRequest request, string adminName = null);

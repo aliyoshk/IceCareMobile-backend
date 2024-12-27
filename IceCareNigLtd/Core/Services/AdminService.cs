@@ -188,6 +188,11 @@ namespace IceCareNigLtd.Core.Services
             return new Response<string> { Success = true, Message = "Success", Data = $"User {request.Action} successfully." };
         }
 
+        public async Task<Response<object>> DeleteUserAsync(int userId)
+        {
+            await _userRepository.DeleteUserAsync(userId);
+            return new Response<object> { Success = true, Message = "User deleted successfully" };
+        }
 
         public async Task<Response<List<UserDto>>> GetApprovedUsersAsync()
         {

@@ -273,8 +273,28 @@ namespace IceCareNigLtd.Api.Controllers
             return Ok(result);
         }
 
+        [HttpDelete("DeleteUser/{id}")]
+        //[Authorize(Policy = "AdminOnly")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<object>), 200)]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var result = await _adminService.DeleteUserAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete user." }
+                });
+            }
 
-        // Get Rejected Users
+            return Ok(result);
+        }
+
+
         [HttpGet]
         [Authorize]
         [Route("GetPendingTransfer")]
