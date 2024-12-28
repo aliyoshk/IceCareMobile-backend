@@ -146,7 +146,8 @@ namespace IceCareNigLtd.Core.Services.Users
             {
                 Success = true,
                 Message = "Success",
-                Data = "User registered successfully.",
+                Data = "Thank you for registering with us!\nWe have received your details and it's currently under review by our admin team.\n\n" +
+                "Please check back later to access your account and start using our services. We appreciate your patience and look forward to welcoming you on board!",
             };
         }
 
