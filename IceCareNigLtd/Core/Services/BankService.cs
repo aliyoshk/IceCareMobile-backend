@@ -34,7 +34,7 @@ namespace IceCareNigLtd.Core.Services
             //        return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
             //}
 
-            var existingBank = accounts.FirstOrDefault(b => b.BankName == bankDto.BankName.Replace(" ", ""));
+            var existingBank = accounts.FirstOrDefault(b => b.BankName == bankDto.BankName);
 
             if (existingBank == null)
                 return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
