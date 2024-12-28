@@ -190,6 +190,10 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<object>> DeleteUserAsync(int userId)
         {
+            var user = await _userRepository.GetTransferByIdAsync(userId);
+            if (user.BalanceNaira > 0 || user.BalanceDollar > 0)
+                return new Response<object> { Success = false, Message = "User has an existing balance in the system" };
+
             await _userRepository.DeleteUserAsync(userId);
             return new Response<object> { Success = true, Message = "User deleted successfully" };
         }
@@ -511,17 +515,13 @@ namespace IceCareNigLtd.Core.Services
             if (user.Email != request.Email)
                 return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
             if (user.Id != request.Id)
-                return new Response<string> { Success = false, Message = "Id not found", Data = "Email not found." };
+                return new Response<string> { Success = false, Message = "Id not found", Data = "Id not found." };
             var userRecord = await _userRepository.GetUserByEmailAsync(user.Email);
 
-            if (request.Confirmed)
-            {
-                user.Status = "Confirmed";
-                user.Approver = adminName;
-                await _userRepository.ConfirmAccountTopUp(user);
-            }
-            else
-                return new Response<string> { Success = false, Message = "Error proceeding with confirmation.", Data = "Invalid Action" };
+
+            user.Status = "Confirmed";
+            user.Approver = adminName;
+            await _userRepository.ConfirmAccountTopUp(user);
 
             return new Response<string>
             {
