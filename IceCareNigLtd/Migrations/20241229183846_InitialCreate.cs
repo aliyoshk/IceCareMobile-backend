@@ -21,12 +21,39 @@ namespace IceCareNigLtd.Migrations
                     Description = table.Column<string>(type: "text", nullable: false),
                     CustomerName = table.Column<string>(type: "text", nullable: false),
                     CustomerAccount = table.Column<string>(type: "text", nullable: false),
-                    Balance = table.Column<decimal>(type: "numeric", nullable: false),
-                    Channel = table.Column<int>(type: "integer", nullable: false)
+                    BalanceNaira = table.Column<decimal>(type: "numeric", nullable: false),
+                    BalanceDollar = table.Column<decimal>(type: "numeric", nullable: false),
+                    Channel = table.Column<int>(type: "integer", nullable: false),
+                    Currency = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AccountPayments", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AccountTopUps",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BalanceNaira = table.Column<decimal>(type: "numeric", nullable: false),
+                    BalanceDollar = table.Column<decimal>(type: "numeric", nullable: false),
+                    Category = table.Column<int>(type: "integer", nullable: false),
+                    Currency = table.Column<int>(type: "integer", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    AccountNo = table.Column<string>(type: "text", nullable: false),
+                    Reference = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    Phone = table.Column<string>(type: "text", nullable: false),
+                    Approver = table.Column<string>(type: "text", nullable: false),
+                    TransactionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountTopUps", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -187,7 +214,8 @@ namespace IceCareNigLtd.Migrations
                     Description = table.Column<string>(type: "text", nullable: false),
                     CustomerName = table.Column<string>(type: "text", nullable: false),
                     CustomerAccount = table.Column<string>(type: "text", nullable: false),
-                    Balance = table.Column<decimal>(type: "numeric", nullable: false),
+                    BalanceNaira = table.Column<decimal>(type: "numeric", nullable: false),
+                    BalanceDollar = table.Column<decimal>(type: "numeric", nullable: false),
                     Channel = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false)
                 },
@@ -207,7 +235,8 @@ namespace IceCareNigLtd.Migrations
                     TransactionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CustomerName = table.Column<string>(type: "text", nullable: false),
                     CustomerAccount = table.Column<string>(type: "text", nullable: false),
-                    Balance = table.Column<decimal>(type: "numeric", nullable: false),
+                    BalanceNaira = table.Column<decimal>(type: "numeric", nullable: false),
+                    BalanceDollar = table.Column<decimal>(type: "numeric", nullable: false),
                     Channel = table.Column<int>(type: "integer", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     DollarRate = table.Column<decimal>(type: "numeric", nullable: false),
@@ -215,11 +244,55 @@ namespace IceCareNigLtd.Migrations
                     Status = table.Column<string>(type: "text", nullable: false),
                     Approver = table.Column<string>(type: "text", nullable: false),
                     Category = table.Column<int>(type: "integer", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: false)
+                    PhoneNumber = table.Column<string>(type: "text", nullable: false),
+                    Currency = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Transfers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TopUpEvidences",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Receipts = table.Column<string>(type: "text", nullable: false),
+                    AccountTopUpId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TopUpEvidences", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TopUpEvidences_AccountTopUps_AccountTopUpId",
+                        column: x => x.AccountTopUpId,
+                        principalTable: "AccountTopUps",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TransferDetails",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BankName = table.Column<string>(type: "text", nullable: false),
+                    TransferredAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    AccountName = table.Column<string>(type: "text", nullable: false),
+                    AccountNumber = table.Column<string>(type: "text", nullable: false),
+                    AccountTopUpId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TransferDetails", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TransferDetails_AccountTopUps_AccountTopUpId",
+                        column: x => x.AccountTopUpId,
+                        principalTable: "AccountTopUps",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -352,6 +425,8 @@ namespace IceCareNigLtd.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     BankName = table.Column<string>(type: "text", nullable: false),
                     TransferredAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    AccountName = table.Column<string>(type: "text", nullable: false),
+                    AccountNumber = table.Column<string>(type: "text", nullable: false),
                     TransferId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -396,9 +471,19 @@ namespace IceCareNigLtd.Migrations
                 column: "TransferId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TopUpEvidences_AccountTopUpId",
+                table: "TopUpEvidences",
+                column: "AccountTopUpId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TransferBanks_TransferId",
                 table: "TransferBanks",
                 column: "TransferId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransferDetails_AccountTopUpId",
+                table: "TransferDetails",
+                column: "AccountTopUpId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -443,7 +528,13 @@ namespace IceCareNigLtd.Migrations
                 name: "ThirdPartyPayments");
 
             migrationBuilder.DropTable(
+                name: "TopUpEvidences");
+
+            migrationBuilder.DropTable(
                 name: "TransferBanks");
+
+            migrationBuilder.DropTable(
+                name: "TransferDetails");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
@@ -456,6 +547,9 @@ namespace IceCareNigLtd.Migrations
 
             migrationBuilder.DropTable(
                 name: "Transfers");
+
+            migrationBuilder.DropTable(
+                name: "AccountTopUps");
         }
     }
 }
