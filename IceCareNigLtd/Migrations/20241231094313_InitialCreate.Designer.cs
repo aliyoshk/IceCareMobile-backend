@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IceCareNigLtd.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241130104358_InitialCreate")]
+    [Migration("20241231094313_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -379,10 +379,16 @@ namespace IceCareNigLtd.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Balance")
+                    b.Property<decimal>("BalanceDollar")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("BalanceNaira")
                         .HasColumnType("numeric");
 
                     b.Property<int>("Channel")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Currency")
                         .HasColumnType("integer");
 
                     b.Property<string>("CustomerAccount")
@@ -406,6 +412,66 @@ namespace IceCareNigLtd.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AccountPayments");
+                });
+
+            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.AccountTopUp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Approver")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("BalanceDollar")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("BalanceNaira")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AccountTopUps");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.EvidenceOfTransfer", b =>
@@ -503,7 +569,10 @@ namespace IceCareNigLtd.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<decimal>("BalanceDollar")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("BalanceNaira")
                         .HasColumnType("numeric");
 
                     b.Property<string>("BankName")
@@ -534,6 +603,28 @@ namespace IceCareNigLtd.Migrations
                     b.ToTable("ThirdPartyPayments");
                 });
 
+            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.TopUpEvidence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountTopUpId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Receipts")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountTopUpId");
+
+                    b.ToTable("TopUpEvidences");
+                });
+
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.Transfer", b =>
                 {
                     b.Property<int>("Id")
@@ -546,13 +637,19 @@ namespace IceCareNigLtd.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<decimal>("BalanceDollar")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("BalanceNaira")
                         .HasColumnType("numeric");
 
                     b.Property<int>("Category")
                         .HasColumnType("integer");
 
                     b.Property<int>("Channel")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Currency")
                         .HasColumnType("integer");
 
                     b.Property<string>("CustomerAccount")
@@ -605,6 +702,14 @@ namespace IceCareNigLtd.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("BankName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -620,6 +725,39 @@ namespace IceCareNigLtd.Migrations
                     b.HasIndex("TransferId");
 
                     b.ToTable("TransferBanks");
+                });
+
+            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.TransferDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("AccountTopUpId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TransferredAmount")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountTopUpId");
+
+                    b.ToTable("TransferDetails");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.BankInfo", b =>
@@ -680,6 +818,17 @@ namespace IceCareNigLtd.Migrations
                     b.Navigation("Transfer");
                 });
 
+            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.TopUpEvidence", b =>
+                {
+                    b.HasOne("IceCareNigLtd.Core.Entities.Users.AccountTopUp", "AccountTopUp")
+                        .WithMany("TransferEvidence")
+                        .HasForeignKey("AccountTopUpId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountTopUp");
+                });
+
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.TransferBank", b =>
                 {
                     b.HasOne("IceCareNigLtd.Core.Entities.Users.Transfer", "Transfer")
@@ -689,6 +838,17 @@ namespace IceCareNigLtd.Migrations
                         .IsRequired();
 
                     b.Navigation("Transfer");
+                });
+
+            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.TransferDetail", b =>
+                {
+                    b.HasOne("IceCareNigLtd.Core.Entities.Users.AccountTopUp", "AccountTopUp")
+                        .WithMany("TransferDetails")
+                        .HasForeignKey("AccountTopUpId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountTopUp");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Customer", b =>
@@ -708,6 +868,13 @@ namespace IceCareNigLtd.Migrations
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Supplier", b =>
                 {
                     b.Navigation("Banks");
+                });
+
+            modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.AccountTopUp", b =>
+                {
+                    b.Navigation("TransferDetails");
+
+                    b.Navigation("TransferEvidence");
                 });
 
             modelBuilder.Entity("IceCareNigLtd.Core.Entities.Users.Transfer", b =>
