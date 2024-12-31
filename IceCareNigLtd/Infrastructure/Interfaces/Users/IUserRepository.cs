@@ -18,6 +18,12 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task MoveToApprovedAsync(Registration user);
         Task MoveToRejectedAsync(Registration user);
         Task DeleteUserAsync(int userId);
+        Task RegisterUser(User user);
+        Task DeleteRegisteredUser(int id);
+        Task AddUserNairaBalance(string email, decimal amount);
+        Task SubtractUserNairaBalance(string email, decimal amount);
+        Task AddUserDollarBalance(string email, decimal amount);
+        Task SubtractUserDollarBalance(string email, decimal amount);
         Task<bool> IsAccountNumberExistsAsync(string accountNumber);
         Task<bool> IsPhoneNumberExistsAsync(string phoneNumber);
         Task ResetPasswordAsync(Registration user);
@@ -29,11 +35,12 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task<bool> IsTransferRefrenceExistsAsync(string transactionReference);
         Task AccountPaymentAsync(AccountPayment accountPayment);
         Task ThirdPartyPaymentAsync(ThirdPartyPayment thirdPartyPayment);
-        Task SubtractNairaTransferAmountAsync(string email, decimal amount);
-        Task SubtractDollarTransferAmountAsync(string email, decimal amount);
-        Task AddNairaTransferAmountAsync(string email, decimal amount);
-        Task AddDollarTransferAmountAsync(string email, decimal amount);
         Task DeleteCustomerTransferRecordAsync(int userId);
+        //Task SubtractNairaTransferAmountAsync(string email, decimal amount);
+        //Task SubtractDollarTransferAmountAsync(string email, decimal amount);
+        //Task AddNairaTransferAmountAsync(string email, decimal amount);
+        //Task AddDollarTransferAmountAsync(string email, decimal amount);
+
 
 
         Task<List<ThirdPartyPayment>> GetThirdPartyTransfers();

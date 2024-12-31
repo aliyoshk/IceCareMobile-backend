@@ -26,6 +26,7 @@ namespace IceCareNigLtd.Infrastructure.Data
 
         //Mobile app DBSets (table)
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
         public DbSet<TransferBank> TransferBanks { get; set; }
         public DbSet<EvidenceOfTransfer> EvidenceOfTransfers { get; set; }

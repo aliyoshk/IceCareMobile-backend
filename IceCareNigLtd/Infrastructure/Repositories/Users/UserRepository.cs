@@ -64,6 +64,92 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             await _context.SaveChangesAsync();
         }
 
+        public async Task RegisterUser(User user)
+        {
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteRegisteredUser(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task AddUserNairaBalance(string email, decimal amount)
+        {
+            var user = await _context.Users.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                user.BalanceNaira += amount;
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task SubtractUserNairaBalance(string email, decimal amount)
+        {
+            var user = await _context.Users.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                if (user.BalanceNaira >= amount)
+                {
+                    user.BalanceNaira -= amount;
+                }
+                else
+                    return;
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task AddUserDollarBalance(string email, decimal amount)
+        {
+            var user = await _context.Users.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                user.BalanceDollar += amount;
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task SubtractUserDollarBalance(string email, decimal amount)
+        {
+            var user = await _context.Users.FindAsync(email);
+            if (user != null)
+            {
+                if (amount <= 0)
+                    return;
+
+                if (user.BalanceDollar >= amount)
+                {
+                    user.BalanceDollar -= amount;
+                }
+                else
+                    return;
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task DeleteUserAsync(int userId)
         {
             var user = await _context.Registrations.FindAsync(userId);
@@ -156,76 +242,6 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         {
             await _context.ThirdPartyPayments.AddAsync(thirdPartyPayment);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task SubtractNairaTransferAmountAsync(string email, decimal amount)
-        {
-            var user = await _context.Transfers.FindAsync(email);
-            if (user != null)
-            {
-                if (amount <= 0)
-                    return;
-
-                if (user.BalanceNaira >= amount)
-                {
-                    user.BalanceNaira -= amount;
-                }
-                else
-                    return;
-
-                _context.Transfers.Update(user);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task SubtractDollarTransferAmountAsync(string email, decimal amount)
-        {
-            var user = await _context.Transfers.FindAsync(email);
-            if (user != null)
-            {
-                if (amount <= 0)
-                    return;
-
-                if (user.DollarAmount >= amount)
-                {
-                    user.DollarAmount -= amount;
-                }
-                else
-                    return;
-
-                _context.Transfers.Update(user);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task AddNairaTransferAmountAsync(string email, decimal amount)
-        {
-            var user = await _context.Transfers.FindAsync(email);
-            if (user != null)
-            {
-                if (amount <= 0)
-                    return;
-
-                user.DollarAmount += amount;
-
-                _context.Transfers.Update(user);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task AddDollarTransferAmountAsync(string email, decimal amount)
-        {
-            var user = await _context.Transfers.FindAsync(email);
-            if (user != null)
-            {
-                if (amount <= 0)
-                    return;
-
-                user.DollarAmount += amount;
-
-                _context.Transfers.Update(user);
-                await _context.SaveChangesAsync();
-            }
         }
 
         public async Task DeleteCustomerTransferRecordAsync(int userId)

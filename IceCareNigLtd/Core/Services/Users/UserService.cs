@@ -298,7 +298,7 @@ namespace IceCareNigLtd.Core.Services.Users
             if (customer.Balance < accountPaymentRequest.NairaAmount)
                 return new Response<bool> { Success = false, Message = "Insufficient account balance", Data = false };
 
-            await _userRepository.SubtractNairaTransferAmountAsync(accountPaymentRequest.CustomerEmail, accountPaymentRequest.NairaAmount);
+            //await _userRepository.SubtractNairaTransferAmountAsync(accountPaymentRequest.CustomerEmail, accountPaymentRequest.NairaAmount);
 
             var data = new AccountPayment
             {
