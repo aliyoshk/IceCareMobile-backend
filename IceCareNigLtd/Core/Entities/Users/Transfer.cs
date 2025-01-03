@@ -11,8 +11,6 @@ namespace IceCareNigLtd.Core.Entities.Users
         public DateTime TransactionDate { get; set; }
         public string CustomerName { get; set; }
         public string CustomerAccount { get; set; }
-        public decimal BalanceNaira { get; set; }
-        public decimal BalanceDollar { get; set; }
         public Channel Channel { get; set; }
         public string Email { get; set; }
         public decimal DollarRate { get; set; }

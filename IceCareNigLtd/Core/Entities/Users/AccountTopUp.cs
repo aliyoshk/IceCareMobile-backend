@@ -6,8 +6,6 @@ namespace IceCareNigLtd.Core.Entities.Users
 	public class AccountTopUp
 	{
         public int Id { get; set; }
-        public decimal BalanceNaira { get; set; }
-        public decimal BalanceDollar { get; set; }
         public Category Category { get; set; }
         public PaymentCurrency Currency { get; set; }
         public string Description { get; set; }

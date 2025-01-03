@@ -18,7 +18,6 @@ namespace IceCareNigLtd.Api.Models.Response
         public string Status { get; set; } 
         public string Category { get; set; }
         public string ApproverName { get; set; }
-        public decimal Balance { get; set; }
         public string TransferReference { get; set; }
         public string PhoneNumber { get; set; }
     }

@@ -8,7 +8,6 @@ namespace IceCareNigLtd.Api.Models.Users
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Status { get; set; }
-        public string Reason { get; set; }
         public string AccountNumber { get; set; }
         public string ReviewedBy { get; set; }
     }

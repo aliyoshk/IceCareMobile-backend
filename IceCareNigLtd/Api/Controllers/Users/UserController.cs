@@ -22,41 +22,6 @@ namespace IceCareNigLtd.Api.Controllers.Users
             _userService = userService;
 		}
 
-
-        [HttpPost]
-        [Route("Login")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(Response<LoginResponse>), 200)]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
-        {
-            if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
-            {
-                return BadRequest(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Login data cannot be null.",
-                    Errors = new List<string> { "Invalid input." }
-                });
-            }
-
-            var result = await _userService.LoginUserAsync(loginDto);
-
-            if (!result.Success)
-            {
-                return Unauthorized(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Login failed.\nInvalid credentials or user not approved.",
-                    Errors = new List<string> { "Invalid credentials or user not approved." }
-                });
-            }
-
-            return Ok(result);
-        }
-
-
         [HttpPost]
         [Route("Register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -141,6 +106,38 @@ namespace IceCareNigLtd.Api.Controllers.Users
             }
         }
 
+        [HttpPost]
+        [Route("Login")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(Response<LoginResponse>), 200)]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Login data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
+            var result = await _userService.LoginUserAsync(loginDto);
+
+            if (!result.Success)
+            {
+                return Unauthorized(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { result.Message }
+                });
+            }
+
+            return Ok(result);
+        }
 
         [HttpPost]
         [Authorize]
@@ -261,16 +258,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Route("AccountBalancePayment")]
         public async Task<IActionResult> AccountPayment([FromBody] AccountPaymentRequest accountPaymentRequest)
         {
-            if (string.IsNullOrEmpty(accountPaymentRequest.DollarAmount.ToString()))
-            {
-                return BadRequest(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Dollar amount cannot be empty.",
-                    Errors = new List<string> { "Invalid input." }
-                });
-            }
-            if (string.IsNullOrEmpty(accountPaymentRequest.NairaAmount.ToString()))
+            if (string.IsNullOrEmpty(accountPaymentRequest.Amount.ToString()))
             {
                 return BadRequest(new ErrorResponse
                 {

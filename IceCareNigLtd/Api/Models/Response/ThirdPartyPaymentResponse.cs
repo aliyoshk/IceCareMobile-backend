@@ -11,7 +11,6 @@ namespace IceCareNigLtd.Api.Models.Response
         public string Description { get; set; }
         public string CustomerName { get; set; }
         public string CustomerAccount { get; set; }
-        public decimal Balance { get; set; }
         public string Channel { get; set; }
         public string Status { get; set; }
     }

@@ -366,17 +366,37 @@ namespace IceCareNigLtd.Api.Controllers
             return Ok(result);
         }
 
+        [HttpDelete("DeleteTransferRecord/{id}")]
+        //[Authorize(Policy = "AdminOnly")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteTransferRecord(int id)
+        {
+            var result = await _adminService.DeleteTransferRecordAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete record." }
+                });
+            }
+
+            return Ok(result);
+        }
+
 
         [HttpGet]
         [Authorize]
-        [Route("GetThirdPartyTransfers")]
+        [Route("GetAccountPayments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Response<List<ThirdPartyPaymentResponse>>), 200)]
         [Produces("application/json")]
-        public async Task<IActionResult> GetThirdPartyTransfers()
+        public async Task<IActionResult> GetAccountPayments(string status)
         {
-            var result = await _adminService.GetThirdPartyTransfer();
+            var result = await _adminService.GetAccountPaymentAsync(status);
             if (result.Data == null || !result.Data.Any())
             {
                 return NotFound(new ErrorResponse
@@ -391,12 +411,79 @@ namespace IceCareNigLtd.Api.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("CompleteThirdPartyTransfer")]
+        [Route("ConfirmAccountPayment")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ThirdPartyTransferCompleted(int id)
+        public async Task<IActionResult> ConfirmAccountPayment(int id)
         {
-            var result = await _adminService.ThirdPartyTransferCompleted(id);
+            var adminName = User.Identity.Name ?? User.FindFirst(ClaimTypes.Name)?.Value;
+            var result = await _adminService.ConfirmAccountPaymentAsync(id, adminName);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to approved account payment request." }
+                });
+            }
+
+            return Ok(result);
+        }
+
+
+        [HttpDelete("DeleteAccountPaymentRecord/{id}")]
+        //[Authorize(Policy = "AdminOnly")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteAccountPaymentRecord(int id)
+        {
+            var result = await _adminService.ConfirmAccountPaymentAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete record." }
+                });
+            }
+
+            return Ok(result);
+        }
+
+
+        [HttpGet]
+        [Authorize]
+        [Route("GetThirdPartyTransfers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Response<List<ThirdPartyPaymentResponse>>), 200)]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetThirdPartyTransfers(string status)
+        {
+            var result = await _adminService.GetThirdPartyTransfer(status);
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("ComfirmThirdPartyTransfer")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ComfirmThirdPartyTransfer(int id)
+        {
+            var adminName = User.Identity.Name ?? User.FindFirst(ClaimTypes.Name)?.Value;
+            var result = await _adminService.ThirdPartyTransferCompleted(id, adminName);
             if (!result.Success)
             {
                 return NotFound(new ErrorResponse
@@ -410,6 +497,27 @@ namespace IceCareNigLtd.Api.Controllers
             return Ok(result);
         }
 
+
+        [HttpDelete("DeleteThirdPartyTransferRecord/{id}")]
+        //[Authorize(Policy = "AdminOnly")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteThirdPartyTransferRecord(int id)
+        {
+            var result = await _adminService.DeleteThirdPartyTransferAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete record." }
+                });
+            }
+
+            return Ok(result);
+        }
+
         [HttpGet]
         [Authorize]
         [Route("GetAccountTopUps")]
@@ -417,9 +525,9 @@ namespace IceCareNigLtd.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Response<List<ThirdPartyPaymentResponse>>), 200)]
         [Produces("application/json")]
-        public async Task<IActionResult> GetAccountTopUps()
+        public async Task<IActionResult> GetAccountTopUps(string status)
         {
-            var result = await _adminService.GetAccountTopUpsAsync();
+            var result = await _adminService.GetAccountTopUpsAsync(status);
             if (result.Data == null || !result.Data.Any())
             {
                 return NotFound(new ErrorResponse
@@ -439,7 +547,8 @@ namespace IceCareNigLtd.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ConfirmAccountTopUp(ConfirmationRequest request)
         {
-            var result = await _adminService.ConfirmAccountTopUp(request);
+            var adminName = User.Identity.Name ?? User.FindFirst(ClaimTypes.Name)?.Value;
+            var result = await _adminService.ConfirmAccountTopUp(request, adminName);
             if (!result.Success)
             {
                 return NotFound(new ErrorResponse
@@ -447,6 +556,27 @@ namespace IceCareNigLtd.Api.Controllers
                     Success = false,
                     Message = result.Message,
                     Errors = new List<string> { "Failed to approved account top up." }
+                });
+            }
+
+            return Ok(result);
+        }
+
+
+        [HttpDelete("DeleteAccountTopUpRecord/{id}")]
+        //[Authorize(Policy = "AdminOnly")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteAccountTopUpRecord(int id)
+        {
+            var result = await _adminService.DeleteAccountTopUpAsync(id);
+            if (!result.Success)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { "Failed to delete record." }
                 });
             }
 

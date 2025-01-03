@@ -22,14 +22,23 @@ namespace IceCareNigLtd.Core.Interfaces
         Task<Response<List<UserDto>>> GetApprovedUsersAsync();
         Task<Response<List<UserDto>>> GetRejectedUsersAsync();
         Task<Response<object>> DeleteUserAsync(int userId);
+
         Task<Response<List<TransferResponse>>> GetPendingTransferAsync();
         Task<Response<List<TransferResponse>>> GetApprovedTransferAsync();
         Task<Response<string>> ConfirmTransferAsync(ConfirmationRequest request, string adminName = null);
         Task<Response<List<TransferResponse>>> GetUsersByTransferStatusAsync(string status);
-        Task<Response<List<ThirdPartyPaymentResponse>>> GetThirdPartyTransfer();
-        Task<Response<string>> ThirdPartyTransferCompleted(int id);
+        Task<Response<object>> DeleteTransferRecordAsync(int id);
 
-        Task<Response<List<AccountTopUpResponse>>> GetAccountTopUpsAsync();
+        Task<Response<List<TransferResponse>>> GetAccountPaymentAsync(string status);
+        Task<Response<string>> ConfirmAccountPaymentAsync(int id, string adminName = null);
+        Task<Response<object>> DeleteAccountPaymentAsync(int id);
+
+        Task<Response<List<ThirdPartyPaymentResponse>>> GetThirdPartyTransfer(string status);
+        Task<Response<string>> ThirdPartyTransferCompleted(int id, string adminName = null);
+        Task<Response<object>> DeleteThirdPartyTransferAsync(int id);
+
+        Task<Response<List<AccountTopUpResponse>>> GetAccountTopUpsAsync(string status);
         Task<Response<string>> ConfirmAccountTopUp(ConfirmationRequest request, string adminName = null);
+        Task<Response<object>> DeleteAccountTopUpAsync(int id);
     }
 }

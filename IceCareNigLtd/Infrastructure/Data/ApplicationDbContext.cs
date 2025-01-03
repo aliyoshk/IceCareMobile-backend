@@ -25,7 +25,6 @@ namespace IceCareNigLtd.Infrastructure.Data
 
 
         //Mobile app DBSets (table)
-        public DbSet<Registration> Registrations { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
         public DbSet<TransferBank> TransferBanks { get; set; }
@@ -46,7 +45,7 @@ namespace IceCareNigLtd.Infrastructure.Data
                 .WithOne(b => b.Supplier)
                 .HasForeignKey(b => b.SupplierId);
 
-            modelBuilder.Entity<Registration>(entity =>
+            modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FullName).IsRequired().HasMaxLength(100);
@@ -54,7 +53,6 @@ namespace IceCareNigLtd.Infrastructure.Data
                 entity.Property(e => e.Password).IsRequired();
                 entity.Property(e => e.Phone).IsRequired().HasMaxLength(11);
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.Reason).HasMaxLength(500);
                 entity.Property(e => e.AccountNumber).HasMaxLength(50);
             });
 

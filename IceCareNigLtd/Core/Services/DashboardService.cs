@@ -129,7 +129,7 @@ namespace IceCareNigLtd.Core.Services
             var accounts = await _settingsRepository.GetCompanyAccountsAsync();
 
             var pendingTransfers = await _userRepository.GetTransferByStatusAsync("Pending");
-            var pendingUsers = await _userRepository.GetUsersByStatusAsync("Pending");
+            var pendingUsers = await _userRepository.GetRegisteredUserByStatus("Pending");
 
             var customers = await _customerRepository.GetCustomersAsync();
             var monthlyTransfers = customers
