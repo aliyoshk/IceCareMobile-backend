@@ -505,7 +505,7 @@ namespace IceCareNigLtd.Core.Services
                 Description = t.Description,
                 AccountName = t.AccountName,
                 AccountNumber = t.AccountNumber,
-                Amount = t.Amount,
+                TotalAmount = t.Amount,
                 BankName = t.BankName,
                 CustomerEmail = t.Email,
                 TransactionDate = t.Date,
@@ -611,6 +611,11 @@ namespace IceCareNigLtd.Core.Services
             user.Status = "Confirmed";
             user.Approver = adminName;
             await _userRepository.ConfirmAccountTopUp(user);
+
+            var userDetails = await _userRepository.GetRegisteredUserByEmail(user.Email);
+
+            if (userDetails.BalanceNaira < 0)
+                await _userRepository.SubtractUserNairaBalance(user.Email, userDetails.BalanceNaira);
 
             await _userRepository.AddUserNairaBalance(user.Email, user.TransferDetails.Sum(a => a.TransferredAmount));
 
