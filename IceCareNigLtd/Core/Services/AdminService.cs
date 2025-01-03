@@ -19,14 +19,14 @@ namespace IceCareNigLtd.Core.Services
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
-
+        private readonly ISettingsRepository _settingsRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IBankRepository _bankRepository;
 
         public AdminService(IAdminRepository adminRepository, ITokenService tokenService, IConfiguration configuration,
             IUserRepository userRepository, IPasswordHasher passwordHasher, ISupplierRepository supplierRepository,
-            ICustomerRepository customerRepository, IBankRepository bankRepository)
+            ICustomerRepository customerRepository, IBankRepository bankRepository, ISettingsRepository settingsRepository)
         {
             _adminRepository = adminRepository;
             _tokenService = tokenService;
@@ -36,6 +36,7 @@ namespace IceCareNigLtd.Core.Services
             _supplierRepository = supplierRepository;
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
+            _settingsRepository = settingsRepository;
         }
 
         public async Task<Response<AdminDto>> AddAdminAsync(AdminDto adminDto)
@@ -445,6 +446,7 @@ namespace IceCareNigLtd.Core.Services
                 CustomerName = users.CustomerName,
                 Status = users.Status,
                 ApproverName = users.Reviewer,
+                TotalAmount = users.Amount,
                 Category = users.Category.ToString(),
                 Description = users.Description,
                 DollarRate = users.DollarRate,
@@ -499,15 +501,20 @@ namespace IceCareNigLtd.Core.Services
             var transfer = await _userRepository.GetThirdPartyTransfers(status);
             var transferDtos = transfer.Select(t => new ThirdPartyPaymentResponse
             {
+                Id = t.Id,
                 Description = t.Description,
                 AccountName = t.AccountName,
                 AccountNumber = t.AccountNumber,
                 Amount = t.Amount,
                 BankName = t.BankName,
+                CustomerEmail = t.Email,
+                TransactionDate = t.Date,
+                TransferReference = t.ReferenceNo,
                 Status = t.Status,
                 CustomerAccount = t.CustomerAccount,
                 Channel = t.Channel.ToString(),
-                CustomerName = t.CustomerName
+                CustomerName = t.CustomerName,
+                Category = t.Category.ToString()
             }).ToList();
 
             return new Response<List<ThirdPartyPaymentResponse>>
@@ -549,24 +556,30 @@ namespace IceCareNigLtd.Core.Services
             return new Response<object> { Success = true, Message = "User deleted successfully" };
         }
 
-        public async Task<Response<List<AccountTopUpResponse>>> GetAccountTopUpsAsync(string status)
+        public async Task<Response<List<TransferResponse>>> GetAccountTopUpsAsync(string status)
         {
+            var dollarRate = await _settingsRepository.GetDollarRateAsync();
             var response = await _userRepository.GetAccountTopUpsAsync(status);
-            var accountTopUps = response.Select(t => new AccountTopUpResponse
+            var accountTopUps = response.Select(t => new TransferResponse
             {
                 Id = t.Id,
-                Amount = t.TransferDetails.Sum(a => a.TransferredAmount),
+                TransactionDate = t.TransactionDate,
+                ApproverName = t.Approver,
+                DollarRate = dollarRate,
+                DollarAmount = t.TransferDetails.Sum(a => a.TransferredAmount) / dollarRate,
                 CustomerName = t.Name,
+                PhoneNumber = t.Phone,
                 Currency = t.Currency.ToString(),
-                Email = t.Email,
-                Phone = t.Phone,
+                TransferReference = t.Reference,
+                CustomerEmail = t.Email,
                 Description = t.Description,
                 Status = t.Status,
-                BankDetails = t.TransferDetails.Select(b => new BankDetails
+                Category = t.Category.ToString(),
+                BankDetails = t.TransferDetails.Select(b => new TransferDetails
                 {
                     AccountName = b.AccountName,
                     AccountNumber = b.AccountNumber,
-                    TransferredAmount = b.TransferredAmount,
+                    AmountTransferred = b.TransferredAmount,
                     BankName = b.BankName
                 }).ToList(),
                 TransferEvidence = t.TransferEvidence?.Select(e => new TransferEvidence
@@ -575,7 +588,7 @@ namespace IceCareNigLtd.Core.Services
                 }).ToList() ?? new List<TransferEvidence>(),
             }).ToList();
 
-            return new Response<List<AccountTopUpResponse>>
+            return new Response<List<TransferResponse>>
             {
                 Success = true,
                 Message = "Success",

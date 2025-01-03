@@ -37,7 +37,7 @@ namespace IceCareNigLtd.Core.Interfaces
         Task<Response<string>> ThirdPartyTransferCompleted(int id, string adminName = null);
         Task<Response<object>> DeleteThirdPartyTransferAsync(int id);
 
-        Task<Response<List<AccountTopUpResponse>>> GetAccountTopUpsAsync(string status);
+        Task<Response<List<TransferResponse>>> GetAccountTopUpsAsync(string status);
         Task<Response<string>> ConfirmAccountTopUp(ConfirmationRequest request, string adminName = null);
         Task<Response<object>> DeleteAccountTopUpAsync(int id);
     }

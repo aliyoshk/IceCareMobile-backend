@@ -295,6 +295,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 Date = DateTime.UtcNow,
                 Email = user.Email,
                 Phone = user.Phone,
+                Reviewer = "",
                 Status = "Pending"
             };
 
@@ -332,6 +333,7 @@ namespace IceCareNigLtd.Core.Services.Users
             var transactionReference = await GenerateTransactionReference();
             var data = new ThirdPartyPayment
             {
+                Date = DateTime.UtcNow,
                 Amount = thirdPartyPaymentRequest.Amount,
                 AccountName = thirdPartyPaymentRequest.AccountName,
                 AccountNumber = thirdPartyPaymentRequest.AccountNumber,
@@ -343,7 +345,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 Email = user.Email,
                 Category = Category.ThirdPartyPayment,
                 ReferenceNo = transactionReference,
-                Status = "Pending"
+                Status = "Pending",
+                Approver = "",
             };
 
             await _userRepository.ThirdPartyPaymentAsync(data);
