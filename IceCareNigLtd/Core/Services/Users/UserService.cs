@@ -355,7 +355,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 Description = thirdPartyPaymentRequest.Description,
                 CustomerAccount = user.AccountNumber,
                 CustomerName = user.FullName,
-                Channel = Channel.WalkIn,
+                Channel = Channel.Mobile,
                 Email = user.Email,
                 Category = Category.ThirdPartyPayment,
                 ReferenceNo = transactionReference,

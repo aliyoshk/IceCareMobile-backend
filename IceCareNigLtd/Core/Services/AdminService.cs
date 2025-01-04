@@ -548,9 +548,9 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<object>> DeleteThirdPartyTransferAsync(int id)
         {
-            var user = await _userRepository.GetTransferByIdAsync(id);
+            var user = await _userRepository.GetThirdPartyPaymentById(id);
             if (user.Status.ToLower() == "pending")
-                await _userRepository.AddUserNairaBalance(user.Email, user.BankDetails.Sum(a => a.TransferredAmount));
+                await _userRepository.AddUserNairaBalance(user.Email, user.Amount);
 
             await _userRepository.DeleteThirdPartyTransferRecordAsync(id);
             return new Response<object> { Success = true, Message = "User deleted successfully" };
