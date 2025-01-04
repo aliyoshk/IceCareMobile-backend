@@ -300,7 +300,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 CustomerAccount = user.AccountNumber,
                 Amount = accountPaymentRequest.Amount,
                 CustomerName = user.FullName,
-                Channel = Channel.WalkIn,
+                Channel = Channel.Mobile,
                 DollarRate = dollarRate,
                 DollarAmount = accountPaymentRequest.Amount / dollarRate,
                 Currency = PaymentCurrency.Naira,

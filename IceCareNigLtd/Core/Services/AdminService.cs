@@ -602,7 +602,7 @@ namespace IceCareNigLtd.Core.Services
             if (user == null)
                 return new Response<string> { Success = false, Message = "User not found.", Data = "User not found." };
             if (user.Status.ToLower() == "confirmed")
-                return new Response<string> { Success = false, Message = "Top up already confirmed"};
+                return new Response<string> { Success = false, Message = "Top up already been confirmed"};
             if (user.Email != request.Email)
                 return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
             if (user.Id != request.Id)
