@@ -55,7 +55,10 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task ConfirmAccountTopUp (AccountTopUp accountTopUp);
         Task DeleteAccountTopUpRecordAsync(int id);
 
-        Task <List<Transfer>> GetTransactionHistory(string email);
+        Task <List<Transfer>> GetTransferHistory(string email);
+        Task<List<AccountPayment>> GetAccountPaymentHistory(string email);
+        Task<List<ThirdPartyPayment>> GetThirdPartyHistory(string email);
+        Task<List<AccountTopUp>> GetAccountTopUpHistory(string email);
         Task<Transfer> GetRemitStatus(string email);
     }
 }

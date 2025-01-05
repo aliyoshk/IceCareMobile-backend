@@ -348,7 +348,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             }
         }
 
-        public async Task<List<Transfer>> GetTransactionHistory(string email)
+        public async Task<List<Transfer>> GetTransferHistory(string email)
         {
             return await _context.Transfers
                 .Where(t => t.Email == email)
@@ -357,7 +357,31 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
                 .ToListAsync();
         }
 
-        public Task<Transfer> GetRemitStatus(string email)
+        public async Task<List<AccountPayment>> GetAccountPaymentHistory(string email)
+        {
+            return await _context.AccountPayments
+                .Where(t => t.Email == email)
+                .OrderByDescending(t => t.Date)
+                .ToListAsync();
+        }
+
+        public async Task<List<ThirdPartyPayment>> GetThirdPartyHistory(string email)
+        {
+            return await _context.ThirdPartyPayments
+                .Where(t => t.Email == email)
+                .OrderByDescending(t => t.Date)
+                .ToListAsync();
+        }
+
+        public async Task<List<AccountTopUp>> GetAccountTopUpHistory(string email)
+        {
+            return await _context.AccountTopUps
+                .Where(t => t.Email == email)
+                .OrderByDescending(t => t.TransactionDate)
+                .ToListAsync();
+        }
+
+        public async Task<Transfer> GetRemitStatus(string email)
         {
             return null;
         }

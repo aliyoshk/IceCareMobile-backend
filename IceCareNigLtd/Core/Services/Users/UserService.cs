@@ -469,18 +469,25 @@ namespace IceCareNigLtd.Core.Services.Users
 
         public async Task<Response<bool>> GetTransferStatus(string email)
         {
-            var history = await _userRepository.GetTransactionHistory(email);
+            var transferHistory = await _userRepository.GetTransferHistory(email);
+            var accountPayment = await _userRepository.GetAccountPaymentHistory(email);
+            var thirdParty = await _userRepository.GetThirdPartyHistory(email);
+            var accountTopup = await _userRepository.GetAccountTopUpHistory(email);
 
-            if (!history.Any())
+            if (!transferHistory.Any() || !accountPayment.Any() || !thirdParty.Any() || !accountPayment.Any())
                 return new Response<bool> { Success = false, Message = "User details not found", Data = false };
             
-            bool hasPendingTransfer = history.Any(item => item.Status.ToLower().Contains("pending"));
-            if (hasPendingTransfer)
+            bool hasPendingTransfer = transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
+            bool hasPendingAccountPayment= transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
+            bool hasPendingThirdParty= transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
+            bool hasPendingTopup= transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
+
+            if (hasPendingTransfer || hasPendingAccountPayment || hasPendingThirdParty || hasPendingTopup)
             {
                 return new Response<bool>
                 {
                     Success = true,
-                    Message = "Once your transfer is confirmed, you will be redirected to view and download transaction(s) related documents.",
+                    Message = "Once your transaction is confirmed, you will be redirected to view and/or download transaction(s) related documents.",
                     Data = true
                 };
             }
@@ -488,20 +495,23 @@ namespace IceCareNigLtd.Core.Services.Users
             return new Response<bool>
             {
                 Success = true,
-                Message = "You don’t have any pending transfer that required attention.\nCheck transaction history to view all your confirmed transfer receipts",
+                Message = "You don’t have any pending transaction that required attention.\nCheck transaction history to view all your confirmed request receipts",
                 Data = true
             };
         }
 
         public async Task<Response<List<TransactionHistoryResponse>>> GetTransactionHistory(string email)
         {
-            var history = await _userRepository.GetTransactionHistory(email);
+            var transferHistory = await _userRepository.GetTransferHistory(email);
+            var accountPayment = await _userRepository.GetAccountPaymentHistory(email);
+            var thirdParty = await _userRepository.GetThirdPartyHistory(email);
+            var accountTopup = await _userRepository.GetAccountTopUpHistory(email);
 
-            var transactionHistory = history.Select(h => new TransactionHistoryResponse
+            var transferHistoryResponses = transferHistory.Select(h => new TransactionHistoryResponse
             {
                 Description = h.Description,
                 TotalAmount = h.BankDetails.Sum(b => b.TransferredAmount).ToString("F2"),
-                TransactionDate = h.TransactionDate.ToString(),
+                TransactionDate = h.TransactionDate.ToString("yyyy-MM-dd"),
                 Category = h.Category.ToString(),
                 AccountDetails = h.BankDetails.Select(b => new AccountDetails
                 {
@@ -512,13 +522,53 @@ namespace IceCareNigLtd.Core.Services.Users
                 }).ToList()
             }).ToList();
 
+            var accountPaymentResponses = accountPayment.Select(h => new TransactionHistoryResponse
+            {
+                Description = h.Description,
+                TotalAmount = h.Amount.ToString("F2"),
+                TransactionDate = h.Date.ToString("yyyy-MM-dd"),
+                Category = h.Category.ToString()
+            }).ToList();
+
+            var thirdPartyResponses = thirdParty.Select(h => new TransactionHistoryResponse
+            {
+                Description = h.Description,
+                TotalAmount = h.Amount.ToString("F2"),
+                TransactionDate = h.Date.ToString("yyyy-MM-dd"),
+                Category = h.Category.ToString()
+            }).ToList();
+
+            var accountTopupResponses = accountTopup.Select(h => new TransactionHistoryResponse
+            {
+                Description = h.Description,
+                TotalAmount = h.TransferDetails.Sum(a => a.TransferredAmount).ToString("F2"),
+                TransactionDate = h.TransactionDate.ToString("yyyy-MM-dd"),
+                Category = h.Category.ToString(),
+                AccountDetails = h.TransferDetails.Select(b => new AccountDetails
+                {
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber,
+                    Amount = b.TransferredAmount.ToString("F2"),
+                    BankName = b.BankName
+                }).ToList()
+            }).ToList();
+
+            // Consolidate all responses into a single list
+            var allTransactionHistory = transferHistoryResponses
+                .Concat(accountPaymentResponses)
+                .Concat(thirdPartyResponses)
+                .Concat(accountTopupResponses)
+                .OrderByDescending(th => DateTime.Parse(th.TransactionDate)) // Sort by date, newest first
+                .ToList();
+
             return new Response<List<TransactionHistoryResponse>>
             {
                 Success = true,
                 Message = "Success",
-                Data = transactionHistory
+                Data = allTransactionHistory
             };
         }
+
 
         public Task<Response<string>> GetRemitStatus(string email)
         {
