@@ -331,6 +331,8 @@ namespace IceCareNigLtd.Core.Services.Users
                 return new Response<bool> { Success = false, Message = "Email not passed", Data = false };
             if (thirdPartyPaymentRequest.Amount <= 0)
                 return new Response<bool> { Success = false, Message = "Amount cannot be less than or equal to Zero", Data = false };
+            if (thirdPartyPaymentRequest.AccountNumber.Length != 10)
+                return new Response<bool> { Success = false, Message = "Account Number should be 10 digits long", Data = false };
 
             var user = await _userRepository.GetRegisteredUserByEmail(thirdPartyPaymentRequest.CustomerEmail);
             if (user == null)
@@ -359,6 +361,7 @@ namespace IceCareNigLtd.Core.Services.Users
                 Email = user.Email,
                 Category = Category.ThirdPartyPayment,
                 ReferenceNo = transactionReference,
+                PhoneNumber = user.Phone,
                 Status = "Pending",
                 Approver = "",
             };

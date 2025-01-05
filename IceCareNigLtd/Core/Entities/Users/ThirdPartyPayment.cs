@@ -20,6 +20,7 @@ namespace IceCareNigLtd.Core.Entities.Users
         public Category Category { get; set; }
         public string ReferenceNo { get; set; }
         public string Approver { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }
 

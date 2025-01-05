@@ -17,6 +17,7 @@ namespace IceCareNigLtd.Api.Models.Response
         public string Status { get; set; }
         public string TransferReference { get; set; }
         public string Category { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }
 

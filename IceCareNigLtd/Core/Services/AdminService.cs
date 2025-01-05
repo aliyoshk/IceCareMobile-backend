@@ -434,7 +434,7 @@ namespace IceCareNigLtd.Core.Services
         public async Task<Response<object>> DeleteTransferRecordAsync(int id)
         {
             await _userRepository.DeleteTransferRecordAsync(id);
-            return new Response<object> { Success = true, Message = "User deleted successfully" };
+            return new Response<object> { Success = true, Message = "Transfer record has been deleted" };
         }
 
         public async Task<Response<List<TransferResponse>>> GetAccountPaymentAsync(string status)
@@ -493,7 +493,7 @@ namespace IceCareNigLtd.Core.Services
                 await _userRepository.AddUserNairaBalance(user.Email, user.TransferDetails.Sum(a => a.TransferredAmount));
 
             await _userRepository.DeleteAccountPaymentRecordAsync(id);
-            return new Response<object> { Success = true, Message = "User deleted successfully" };
+            return new Response<object> { Success = true, Message = "Account payment record has been deleted" };
         }
 
         public async Task<Response<List<ThirdPartyPaymentResponse>>> GetThirdPartyTransfer(string status)
@@ -514,7 +514,8 @@ namespace IceCareNigLtd.Core.Services
                 CustomerAccount = t.CustomerAccount,
                 Channel = t.Channel.ToString(),
                 CustomerName = t.CustomerName,
-                Category = t.Category.ToString()
+                Category = t.Category.ToString(),
+                PhoneNumber = t.PhoneNumber
             }).ToList();
 
             return new Response<List<ThirdPartyPaymentResponse>>
@@ -553,7 +554,7 @@ namespace IceCareNigLtd.Core.Services
                 await _userRepository.AddUserNairaBalance(user.Email, user.Amount);
 
             await _userRepository.DeleteThirdPartyTransferRecordAsync(id);
-            return new Response<object> { Success = true, Message = "User deleted successfully" };
+            return new Response<object> { Success = true, Message = "Third party transfer record deleted" };
         }
 
         public async Task<Response<List<TransferResponse>>> GetAccountTopUpsAsync(string status)
@@ -634,7 +635,7 @@ namespace IceCareNigLtd.Core.Services
                 await _userRepository.AddUserNairaBalance(user.Email, user.TransferDetails.Sum(a => a.TransferredAmount));
 
             await _userRepository.DeleteAccountTopUpRecordAsync(id);
-            return new Response<object> { Success = true, Message = "User deleted successfully" };
+            return new Response<object> { Success = true, Message = "Account top up record deleted" };
         }
     }
 }
