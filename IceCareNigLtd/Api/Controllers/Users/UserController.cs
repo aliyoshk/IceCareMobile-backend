@@ -387,7 +387,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                 return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed" });
 
             var result = await _userService.RefreshAccount(email);
-            if (result.Data != null)
+            if (result.Data == null)
             {
                 return NotFound(new ErrorResponse
                 {
