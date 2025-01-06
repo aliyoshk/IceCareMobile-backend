@@ -16,6 +16,7 @@ namespace IceCareNigLtd.Core.Interfaces.Users
         Task<Response<bool>> AccountPaymentAsync(AccountPaymentRequest accountPaymentRequest);
         Task<Response<bool>> ThirdPartyPaymentAsync(ThirdPartyPaymentRequest thirdPartyPaymentRequest);
         Task<Response<bool>> TopUpAccountAsync(AccoutTopUpRequest accoutTopUpRequest);
+        Task<Response<UserAccount>> RefreshAccount(string email);
 
         Task<Response<bool>> GetTransferStatus(string email);
         Task<Response<List<TransactionHistoryResponse>>> GetTransactionHistory(string email);

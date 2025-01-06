@@ -379,6 +379,30 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<UserAccount>), 200)]
+        [Route("RefreshAccount")]
+        public async Task<IActionResult> RefreshAccount(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed" });
+
+            var result = await _userService.RefreshAccount(email);
+            if (result.Data != null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found",
+                });
+            };
+            return Ok(result);
+        }
+
+
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("CheckTransferStatus")]
         public async Task<IActionResult> CheckTransferStatus(string email)

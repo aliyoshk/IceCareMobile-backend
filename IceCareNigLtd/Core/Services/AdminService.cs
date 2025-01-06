@@ -324,8 +324,12 @@ namespace IceCareNigLtd.Core.Services
         public async Task<Response<string>> ConfirmTransferAsync(ConfirmationRequest request, string adminName = null)
         {
             var user = await _userRepository.GetTransferByIdAsync(request.Id);
+            var availableDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
+
             if (user == null)
                 return new Response<string> { Success = false, Message = "User not found.", Data = "User not found." };
+            if (user.DollarAmount > availableDollarAmount)
+                return new Response<string> { Success = false, Message = "Insufficient dollar to complete request" };
             if (user.Email != request.Email)
                 return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
             if (user.Id != request.Id)
@@ -470,9 +474,13 @@ namespace IceCareNigLtd.Core.Services
         public async Task<Response<string>> ConfirmAccountPaymentAsync(int id, string adminName = null)
         {
             var user = await _userRepository.GetAccountPaymentById(id);
+            var availableDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
+
             if (user == null)
                 return new Response<string> { Success = false, Message = "Record not found.", Data = "Value not found." };
-
+            if (user.DollarAmount > availableDollarAmount)
+                return new Response<string> { Success = false, Message = "Insufficient dollar to complete request" };
+            
             user.Status = "Confirmed";
             user.Reviewer = adminName;
 

@@ -130,11 +130,14 @@ namespace IceCareNigLtd.Core.Services.Users
                 Status = user.Status,
                 AccountNumber = user.AccountNumber,
                 Phone = user.Phone,
-                NairaBalance = user.BalanceNaira.ToString("F2"),
-                DollarBalance = user.BalanceDollar.ToString("F2"),
-                CompanyNumber = companyPhone,
-                DollarRate = dollarRate,
-                CompanyAccounts = companyAccounts
+                UserAccount = new UserAccount
+                {
+                    NairaBalance = user.BalanceNaira.ToString("F2"),
+                    DollarBalance = user.BalanceDollar.ToString("F2"),
+                    CompanyNumber = companyPhone,
+                    DollarRate = dollarRate,
+                    CompanyAccounts = companyAccounts
+                }
             };
 
             return new Response<LoginResponse>
@@ -179,18 +182,8 @@ namespace IceCareNigLtd.Core.Services.Users
         public async Task<Response<bool>> FundTransferAsync(TransferRequest transferRequest)
         {
             var dollarRate = await _settingsRepository.GetDollarRateAsync();
-            var totalSupplierDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
-            if (totalSupplierDollarAmount < transferRequest.DollarAmount)
-            {
-                return new Response<bool>
-                {
-                    Success = false,
-                    Message = "Request can not be completed, Please try again later",
-                    Data = true
-                };
-            }
-
             var user = await _userRepository.GetRegisteredUserByEmail(transferRequest.CustomerEmail);
+
             if (user == null)
                 return new Response<bool> { Success = false, Message = "User is null", Data = false };
             if (string.IsNullOrEmpty(user.Email))
@@ -465,6 +458,32 @@ namespace IceCareNigLtd.Core.Services.Users
                 refNumber = Random.Shared.Next(100000, 999999);
             while (await _userRepository.IsTransferRefrenceExistsAsync("ICNL" + refNumber.ToString()));
             return $"ICNL{refNumber}";
+        }
+
+        public async Task<Response<UserAccount>> RefreshAccount(string email)
+        {
+            var user = await _userRepository.GetRegisteredUserByEmail(email);
+            if (user == null)
+                return new Response<UserAccount> { Success = false, Message = "User not found" };
+
+            var dollarRate = await _settingsRepository.GetDollarRateAsync();
+            var companyPhone = await _settingsRepository.GetCompanyPhoneNumbersAsync();
+            var companyAccounts = await _settingsRepository.GetCompanyAccountsAsync();
+            var userDto = new UserAccount
+            {
+                NairaBalance = user.BalanceNaira.ToString("F2"),
+                DollarBalance = user.BalanceDollar.ToString("F2"),
+                CompanyNumber = companyPhone,
+                DollarRate = dollarRate,
+                CompanyAccounts = companyAccounts
+            };
+
+            return new Response<UserAccount>
+            {
+                Success = true,
+                Message = "Account refresh successful.",
+                Data = userDto
+            };
         }
 
         public async Task<Response<bool>> GetTransferStatus(string email)
