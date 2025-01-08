@@ -407,7 +407,6 @@ namespace IceCareNigLtd.Core.Services.Users
                 return new Response<bool> { Success = false, Message = string.Join("; ", errorMessages) };
 
             var currency = PaymentCurrency.Dollar;
-            decimal amount = 0;
             if (accoutTopUpRequest.Currency.ToLower().Contains("naira"))
             {
                 currency = PaymentCurrency.Naira;

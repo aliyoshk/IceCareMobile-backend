@@ -395,7 +395,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
                     Message = "No record found",
                 });
             };
-            return Ok(result);
+            return Ok(result.Data);
         }
 
 
