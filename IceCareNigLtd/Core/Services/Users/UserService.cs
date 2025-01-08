@@ -491,15 +491,11 @@ namespace IceCareNigLtd.Core.Services.Users
             var accountPayment = await _userRepository.GetAccountPaymentHistory(email);
             var thirdParty = await _userRepository.GetThirdPartyHistory(email);
             var accountTopup = await _userRepository.GetAccountTopUpHistory(email);
-
-            if (!transferHistory.Any() || !accountPayment.Any() || !thirdParty.Any() || !accountPayment.Any())
-                return new Response<bool> { Success = false, Message = "User details not found", Data = false };
             
             bool hasPendingTransfer = transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
-            bool hasPendingAccountPayment= transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
-            bool hasPendingThirdParty= transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
-            bool hasPendingTopup= transferHistory.Any(item => item.Status.ToLower().Contains("pending"));
-
+            bool hasPendingAccountPayment= accountPayment.Any(item => item.Status.ToLower().Contains("pending"));
+            bool hasPendingThirdParty= thirdParty.Any(item => item.Status.ToLower().Contains("pending"));
+            bool hasPendingTopup= accountTopup.Any(item => item.Status.ToLower().Contains("pending"));
             if (hasPendingTransfer || hasPendingAccountPayment || hasPendingThirdParty || hasPendingTopup)
             {
                 return new Response<bool>
@@ -525,7 +521,9 @@ namespace IceCareNigLtd.Core.Services.Users
             var thirdParty = await _userRepository.GetThirdPartyHistory(email);
             var accountTopup = await _userRepository.GetAccountTopUpHistory(email);
 
-            var transferHistoryResponses = transferHistory.Select(h => new TransactionHistoryResponse
+            var transferHistoryResponses = transferHistory
+                .Where(h => h.Status.ToLower().Contains("confirmed"))
+                .Select(h => new TransactionHistoryResponse
             {
                 Description = h.Description,
                 TotalAmount = h.BankDetails.Sum(b => b.TransferredAmount).ToString("F2"),
@@ -540,7 +538,9 @@ namespace IceCareNigLtd.Core.Services.Users
                 }).ToList()
             }).ToList();
 
-            var accountPaymentResponses = accountPayment.Select(h => new TransactionHistoryResponse
+            var accountPaymentResponses = accountPayment
+                .Where(h => h.Status.ToLower().Contains("confirmed"))
+                .Select(h => new TransactionHistoryResponse
             {
                 Description = h.Description,
                 TotalAmount = h.Amount.ToString("F2"),
@@ -548,7 +548,9 @@ namespace IceCareNigLtd.Core.Services.Users
                 Category = h.Category.ToString()
             }).ToList();
 
-            var thirdPartyResponses = thirdParty.Select(h => new TransactionHistoryResponse
+            var thirdPartyResponses = thirdParty
+                .Where(h => h.Status.ToLower().Contains("confirmed"))
+                .Select(h => new TransactionHistoryResponse
             {
                 Description = h.Description,
                 TotalAmount = h.Amount.ToString("F2"),
@@ -556,7 +558,9 @@ namespace IceCareNigLtd.Core.Services.Users
                 Category = h.Category.ToString()
             }).ToList();
 
-            var accountTopupResponses = accountTopup.Select(h => new TransactionHistoryResponse
+            var accountTopupResponses = accountTopup
+                .Where(h => h.Status.ToLower().Contains("confirmed"))
+                .Select(h => new TransactionHistoryResponse
             {
                 Description = h.Description,
                 TotalAmount = h.TransferDetails.Sum(a => a.TransferredAmount).ToString("F2"),

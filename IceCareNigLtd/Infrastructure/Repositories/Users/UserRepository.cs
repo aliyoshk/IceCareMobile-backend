@@ -378,6 +378,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             return await _context.AccountTopUps
                 .Where(t => t.Email == email)
                 .OrderByDescending(t => t.TransactionDate)
+                .Include(t => t.TransferDetails)
                 .ToListAsync();
         }
 
