@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.NetworkInformation;
 using IceCareNigLtd.Api.Models;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
 using IceCareNigLtd.Core.Interfaces;
@@ -128,8 +129,39 @@ namespace IceCareNigLtd.Core.Services
             //Get Company Accounts
             var accounts = await _settingsRepository.GetCompanyAccountsAsync();
 
-            var pendingTransfers = await _userRepository.GetTransferByStatusAsync("Pending");
             var pendingUsers = await _userRepository.GetRegisteredUserByStatus("Pending");
+
+            var pendingTransfer = await _userRepository.GetTransferByStatusAsync("Pending");
+            var pendingAcctTopUp = await _userRepository.GetAccountTopUpsAsync("Pending");
+            var pendingAcctPayment = await _userRepository.GetAccountPayments("Pending");
+            var pendingThirdParty = await _userRepository.GetThirdPartyTransfers("Pending");
+
+            var transfersResponses = new List<PendingTransfer>();
+            transfersResponses.AddRange(pendingTransfer.Select(p => new PendingTransfer
+            {
+                Name = p.CustomerName,
+                Date = p.TransactionDate,
+                amount = p.BankDetails.Sum(a => a.TransferredAmount)
+            }) ?? new List<PendingTransfer>());
+            transfersResponses.AddRange(pendingAcctTopUp.Select(p => new PendingTransfer
+            {
+                Name = p.Name,
+                Date = p.TransactionDate,
+                amount = p.TransferDetails.Sum(a => a.TransferredAmount)
+            }) ?? new List<PendingTransfer>());
+            transfersResponses.AddRange(pendingAcctPayment.Select(p => new PendingTransfer
+            {
+                Name = p.CustomerName,
+                Date = p.Date,
+                amount = p.Amount
+            }) ?? new List<PendingTransfer>());
+            transfersResponses.AddRange(pendingThirdParty.Select(p => new PendingTransfer
+            {
+                Name = p.CustomerName,
+                Date = p.Date,
+                amount = p.Amount
+            }) ?? new List<PendingTransfer>());
+            transfersResponses = transfersResponses.OrderByDescending(th => th.Date).Take(4).ToList();
 
             var customers = await _customerRepository.GetCustomersAsync();
             var monthlyTransfers = customers
@@ -184,12 +216,7 @@ namespace IceCareNigLtd.Core.Services
                 CompanyPhoneNumbers = phoneNumbers,
                 ShowAdminPanel =  admin.Role.ToLower() != "normal"  ? true : false,
                 CompanyAccounts = accounts,
-                PendingTransfer = pendingTransfers.Take(4).Select(p => new PendingTransfer
-                {
-                    Name = p.CustomerName,
-                    Date = p.TransactionDate,
-                    amount = p.BankDetails.Sum(a => a.TransferredAmount)
-                }).ToList(),
+                PendingTransfer = transfersResponses,
                 PendingRegistration = pendingUsers.Take(4).Select(u => new PendingRegistration
                 {
                     Name = u.FullName,
