@@ -353,11 +353,11 @@ namespace IceCareNigLtd.Core.Services
                 totalTransfer += item.TransferredAmount;
             }
             var paidDollarQuantity = totalTransfer / user.DollarRate;
+            var remainingAmount = paidDollarQuantity - user.DollarAmount;
+            decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
 
             var userDetails = await _userRepository.GetRegisteredUserByEmail(user.Email);
 
-            var remainingAmount = paidDollarQuantity - user.DollarAmount;
-            decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
             var customer = new Customer
             {
                 Name = user.CustomerName,
@@ -400,13 +400,18 @@ namespace IceCareNigLtd.Core.Services
 
                 await _bankRepository.AddBankAsync(bank);
             }
-
-            //if (userDetails.BalanceNaira < 0)
-            //    await _userRepository.SubtractUserNairaBalance(user.Email, userDetails.BalanceNaira);
-            if (user.DollarAmount > paidDollarQuantity)
-                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
             // we aren't deleting record at the moment
             //await _userRepository.DeleteCustomerTransferRecordAsync(user.Id);
+
+            if (paidDollarQuantity > user.DollarAmount)
+                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
+            //else
+            //{
+            //    if (userDetails.BalanceNaira > 0)
+            //    {
+            //        await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
+            //    }
+            //}
 
             return new Response<string>
             {
