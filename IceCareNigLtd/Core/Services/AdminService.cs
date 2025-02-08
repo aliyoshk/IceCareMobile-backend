@@ -363,7 +363,7 @@ namespace IceCareNigLtd.Core.Services
                 DollarRate = user.DollarRate,
                 DollarAmount = user.DollarAmount,
                 TotalNairaAmount = amount,
-                Balance = paidDollarQuantity > user.DollarAmount ? 0 : user.DollarAmount - paidDollarQuantity,
+                Balance = paidDollarQuantity > user.DollarAmount ? 0 : paidDollarQuantity - user.DollarAmount,
                 PhoneNumber = userRecord.Phone ?? "",
                 PaymentCurrency = PaymentCurrency.Naira,
                 Channel = Channel.Mobile,
