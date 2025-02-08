@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography.Xml;
+﻿using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography.Xml;
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
@@ -346,7 +347,13 @@ namespace IceCareNigLtd.Core.Services
             else
                 return new Response<string> { Success = false, Message = "Error.", Data = "Invalid Action"};
 
-            var userDetails = await _userRepository.GetRegisteredUserByEmail(user.Email);
+            decimal totalTransfer = 0;
+            foreach(var item in user.BankDetails)
+            {
+                totalTransfer += item.TransferredAmount;
+            }
+            var paidDollarQuantity = totalTransfer / user.DollarRate;
+
             decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
             var customer = new Customer
             {
@@ -356,12 +363,12 @@ namespace IceCareNigLtd.Core.Services
                 DollarRate = user.DollarRate,
                 DollarAmount = user.DollarAmount,
                 TotalNairaAmount = amount,
-                Balance = userDetails.BalanceNaira,
+                Balance = paidDollarQuantity > user.DollarAmount ? 0 : user.DollarAmount - paidDollarQuantity,
                 PhoneNumber = userRecord.Phone ?? "",
                 PaymentCurrency = PaymentCurrency.Naira,
                 Channel = Channel.Mobile,
                 AccountNumber = user.CustomerAccount,
-                Deposit = userDetails.BalanceNaira,
+                Deposit = user.DollarAmount > paidDollarQuantity ? 0 : paidDollarQuantity - user.DollarAmount,
                 PaymentEvidence = user.TransferEvidence.Select(e => new CustomerPaymentReceipt
                 {
                     Reciept = e.Receipts
@@ -485,6 +492,42 @@ namespace IceCareNigLtd.Core.Services
             user.Reviewer = adminName;
 
             await _userRepository.ConfirmAccountPayment(user);
+
+            var customer = new Customer
+            {
+                Name = user.CustomerName,
+                Date = DateTime.UtcNow,
+                ModeOfPayment = ModeOfPayment.Transfer,
+                DollarRate = user.DollarRate,
+                DollarAmount = user.DollarAmount,
+                TotalNairaAmount = user.Amount,
+                Balance = 0,
+                PhoneNumber = user.Phone ?? "",
+                PaymentCurrency = PaymentCurrency.Naira,
+                Channel = Channel.Mobile,
+                AccountNumber = user.CustomerAccount,
+                Deposit = 0,
+                PaymentEvidence = null,
+                Banks = null
+            };
+
+            await _supplierRepository.SubtractDollarAmountAsync(customer.DollarAmount);
+            await _customerRepository.AddCustomerAsync(customer);
+
+            foreach (var bankInfo in customer.Banks)
+            {
+                var bank = new Bank
+                {
+                    BankName = bankInfo.BankName.ToString(),
+                    Date = DateTime.UtcNow,
+                    EntityName = user.CustomerName,
+                    PersonType = PersonType.Customer,
+                    ExpenseType = CreditType.Credit,
+                    Amount = bankInfo.AmountTransferred,
+                };
+
+                await _bankRepository.AddBankAsync(bank);
+            }
 
             return new Response<string>
             {
