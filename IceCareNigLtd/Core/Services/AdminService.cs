@@ -356,6 +356,7 @@ namespace IceCareNigLtd.Core.Services
 
             var userDetails = await _userRepository.GetRegisteredUserByEmail(user.Email);
 
+            var remainingAmount = paidDollarQuantity - user.DollarAmount;
             decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
             var customer = new Customer
             {
@@ -365,12 +366,12 @@ namespace IceCareNigLtd.Core.Services
                 DollarRate = user.DollarRate,
                 DollarAmount = user.DollarAmount,
                 TotalNairaAmount = amount,
-                Balance = paidDollarQuantity > user.DollarAmount ? 0 : paidDollarQuantity - user.DollarAmount,
+                Balance = paidDollarQuantity > user.DollarAmount ? 0 : remainingAmount * user.DollarRate,
                 PhoneNumber = userRecord.Phone ?? "",
                 PaymentCurrency = PaymentCurrency.Naira,
                 Channel = Channel.Mobile,
                 AccountNumber = user.CustomerAccount,
-                Deposit = user.DollarAmount > paidDollarQuantity ? 0 : paidDollarQuantity - user.DollarAmount,
+                Deposit = user.DollarAmount > paidDollarQuantity ? 0 : remainingAmount * user.DollarRate,
                 PaymentEvidence = user.TransferEvidence.Select(e => new CustomerPaymentReceipt
                 {
                     Reciept = e.Receipts
@@ -403,7 +404,7 @@ namespace IceCareNigLtd.Core.Services
             //if (userDetails.BalanceNaira < 0)
             //    await _userRepository.SubtractUserNairaBalance(user.Email, userDetails.BalanceNaira);
             if (user.DollarAmount > paidDollarQuantity)
-                await _userRepository.AddUserNairaBalance(user.Email, paidDollarQuantity - user.DollarAmount);
+                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
             // we aren't deleting record at the moment
             //await _userRepository.DeleteCustomerTransferRecordAsync(user.Id);
 
