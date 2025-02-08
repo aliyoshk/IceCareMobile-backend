@@ -555,7 +555,17 @@ namespace IceCareNigLtd.Core.Services.Users
                 Description = h.Description,
                 TotalAmount = h.Amount.ToString("F2"),
                 TransactionDate = h.Date.ToString("yyyy-MM-dd"),
-                Category = h.Category.ToString()
+                Category = h.Category.ToString(),
+                AccountDetails = new List<AccountDetails>
+                {
+                    new AccountDetails
+                    {
+                        AccountName = h.AccountName,
+                        AccountNumber = h.AccountNumber,
+                        Amount = h.Amount.ToString("F2"),
+                        BankName = h.BankName
+                    }
+                }.ToList()
             }).ToList();
 
             var accountTopupResponses = accountTopup
