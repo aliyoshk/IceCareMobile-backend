@@ -9,14 +9,23 @@ namespace IceCareNigLtd.Infrastructure.Data
     {
         public async Task SeedAsync(ApplicationDbContext context)
         {
-            if (!await context.Settings.AnyAsync())
+            try
             {
-                context.Settings.Add(new Settings
+                await context.Database.EnsureCreatedAsync();
+                if (!await context.Settings.AnyAsync())
                 {
-                    Id = 1,
-                    DollarRate = 1.0m
-                });
-                await context.SaveChangesAsync();
+                    context.Settings.Add(new Settings
+                    {
+                        Id = 1,
+                        DollarRate = 1.0m
+                    });
+                    await context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database seeding failed: {ex.Message}");
+                throw;
             }
         }
     }
