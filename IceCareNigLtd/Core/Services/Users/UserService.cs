@@ -240,17 +240,17 @@ namespace IceCareNigLtd.Core.Services.Users
 
             await _userRepository.FundTransferAsync(data);
 
-            var expectedDollar = transferRequest.BankDetails.Sum(a => a.TransferredAmount) / dollarRate;
-            if (transferRequest.DollarAmount > expectedDollar)
-            {
-                var balance = (transferRequest.DollarAmount - expectedDollar) * dollarRate;
-                await _userRepository.SubtractUserNairaBalance(user.Email, balance);
-            }
-            else if (expectedDollar > transferRequest.DollarAmount)
-            {
-                var balance = (expectedDollar - transferRequest.DollarAmount) * dollarRate;
-                await _userRepository.AddUserNairaBalance(user.Email, balance);
-            }
+            //var expectedDollar = transferRequest.BankDetails.Sum(a => a.TransferredAmount) / dollarRate;
+            //if (transferRequest.DollarAmount > expectedDollar)
+            //{
+            //    var balance = (transferRequest.DollarAmount - expectedDollar) * dollarRate;
+            //    await _userRepository.SubtractUserNairaBalance(user.Email, balance);
+            //}
+            //else if (expectedDollar > transferRequest.DollarAmount)
+            //{
+            //    var balance = (expectedDollar - transferRequest.DollarAmount) * dollarRate;
+            //    await _userRepository.AddUserNairaBalance(user.Email, balance);
+            //}
 
 
             return new Response<bool>
