@@ -341,20 +341,15 @@ namespace IceCareNigLtd.Core.Services
             {
                 user.Status = "Confirmed";
                 user.Approver = adminName;
-                await _userRepository.AddUserNairaBalance(user.Email, user.BankDetails.Sum(a => a.TransferredAmount));
                 await _userRepository.ApproveTransferAsync(user);
             }
             else
                 return new Response<string> { Success = false, Message = "Error.", Data = "Invalid Action"};
 
-            decimal totalTransfer = 0;
-            foreach(var item in user.BankDetails)
-            {
-                totalTransfer += item.TransferredAmount;
-            }
-            var paidDollarQuantity = totalTransfer / user.DollarRate;
-            var remainingAmount = paidDollarQuantity - user.DollarAmount;
+
             decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
+            var paidDollarQuantity = amount / user.DollarRate;
+            var remainingAmount = paidDollarQuantity - user.DollarAmount;
 
             var userDetails = await _userRepository.GetRegisteredUserByEmail(user.Email);
 
@@ -405,6 +400,8 @@ namespace IceCareNigLtd.Core.Services
 
             if (paidDollarQuantity > user.DollarAmount)
                 await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
+            else if (user.DollarAmount > paidDollarQuantity)
+                await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
             //else
             //{
             //    if (userDetails.BalanceNaira > 0)
