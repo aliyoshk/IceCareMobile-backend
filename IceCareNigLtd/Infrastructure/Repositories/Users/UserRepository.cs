@@ -54,10 +54,15 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
             return await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
+        public async Task<User> GetRegisteredUserByPhone(string phone)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+        }
+
         public async Task<List<User>> GetRegisteredUserByStatus(string status)
         {
             return await _context.Users
-                .Where(u => u.Status == status)
+                .Where(u => u.Status.ToLower() == status.ToLower())
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
         }
@@ -199,7 +204,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<Transfer>> GetTransferByStatusAsync(string status)
         {
             return await _context.Transfers
-                .Where(t => t.Status == status)
+                .Where(t => t.Status.ToLower() == status.ToLower())
                 .OrderByDescending(t => t.TransactionDate)
                 .Include(t => t.BankDetails)
                 .Include(t => t.TransferEvidence)
@@ -230,7 +235,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<AccountPayment>> GetAccountPayments(string status)
         {
             return await _context.AccountPayments
-                .Where(t => t.Status == status)
+                .Where(t => t.Status.ToLower() == status.ToLower())
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
         }
@@ -267,7 +272,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<ThirdPartyPayment>> GetThirdPartyTransfers(string status)
         {
             return await _context.ThirdPartyPayments
-                .Where(t => t.Status == status)
+                .Where(t => t.Status.ToLower() == status.ToLower())
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
         }
@@ -316,7 +321,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<AccountTopUp>> GetAccountTopUpsAsync(string status)
         {
             return await _context.AccountTopUps
-                .Where(t => t.Status == status)
+                .Where(t => t.Status.ToLower() == status.ToLower())
                 .OrderByDescending(t => t.TransactionDate)
                 .Include(t => t.TransferDetails)
                 .Include(t => t.TransferEvidence)
@@ -351,7 +356,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<Transfer>> GetTransferHistory(string email)
         {
             return await _context.Transfers
-                .Where(t => t.Email == email)
+                .Where(t => t.Email.ToLower() == email.ToLower())
                 .OrderByDescending(t => t.TransactionDate)
                 .Include(t => t.BankDetails)
                 .ToListAsync();
@@ -360,7 +365,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<AccountPayment>> GetAccountPaymentHistory(string email)
         {
             return await _context.AccountPayments
-                .Where(t => t.Email == email)
+                .Where(t => t.Email.ToLower() == email.ToLower())
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
         }
@@ -368,7 +373,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<ThirdPartyPayment>> GetThirdPartyHistory(string email)
         {
             return await _context.ThirdPartyPayments
-                .Where(t => t.Email == email)
+                .Where(t => t.Email.ToLower() == email.ToLower())
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
         }
@@ -376,7 +381,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
         public async Task<List<AccountTopUp>> GetAccountTopUpHistory(string email)
         {
             return await _context.AccountTopUps
-                .Where(t => t.Email == email)
+                .Where(t => t.Email.ToLower() == email.ToLower())
                 .OrderByDescending(t => t.TransactionDate)
                 .Include(t => t.TransferDetails)
                 .ToListAsync();

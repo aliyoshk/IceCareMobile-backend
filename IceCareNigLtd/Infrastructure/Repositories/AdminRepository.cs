@@ -51,7 +51,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<Admin> GetAdminByUsernameAsync(string username)
         {
-            return await _context.Admins.FirstOrDefaultAsync(a => a.Email == username);
+            return await _context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == username.ToLower());
         }
     }
 }

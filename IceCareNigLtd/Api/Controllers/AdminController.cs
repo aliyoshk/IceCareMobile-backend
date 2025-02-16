@@ -438,7 +438,7 @@ namespace IceCareNigLtd.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAccountPaymentRecord(int id)
         {
-            var result = await _adminService.ConfirmAccountPaymentAsync(id);
+            var result = await _adminService.DeleteAccountPaymentAsync(id);
             if (!result.Success)
             {
                 return NotFound(new ErrorResponse

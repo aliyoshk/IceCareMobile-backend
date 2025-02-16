@@ -26,10 +26,11 @@ namespace IceCareNigLtd.Core.Services.Users
         private readonly IBankRepository _bankRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ITokenService _tokenService;
+        private readonly ILogger<UserService> _logger;
 
         public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, ISettingsRepository settingsRepository,
              ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository,
-             ITokenService tokenService)
+             ITokenService tokenService, ILogger<UserService> logger)
 		{
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
@@ -38,6 +39,7 @@ namespace IceCareNigLtd.Core.Services.Users
             _bankRepository = bankRepository;
             _supplierRepository = supplierRepository;
             _tokenService = tokenService;
+            _logger = logger;
         }
 
         public async Task<Response<string>> RegisterUserAsync(RegistrationDto registrationDto)
@@ -52,7 +54,6 @@ namespace IceCareNigLtd.Core.Services.Users
                     Success = false,
                     Message = "Email already in use",
                     Data = "Email already in use"
-
                 };
             }
             else if (phoneNumberExists)

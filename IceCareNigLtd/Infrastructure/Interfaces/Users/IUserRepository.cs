@@ -19,6 +19,7 @@ namespace IceCareNigLtd.Infrastructure.Interfaces.Users
         Task<List<User>> GetRegisteredUsers();
         Task<User> GetRegisteredUserById(int id);
         Task<User> GetRegisteredUserByEmail(string email);
+        Task<User> GetRegisteredUserByPhone(string phone);
         Task<List<User>> GetRegisteredUserByStatus(string status);
         Task AddUserNairaBalance(string email, decimal amount);
         Task SubtractUserNairaBalance(string email, decimal amount);

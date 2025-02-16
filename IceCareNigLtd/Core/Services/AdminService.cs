@@ -361,12 +361,12 @@ namespace IceCareNigLtd.Core.Services
                 DollarRate = user.DollarRate,
                 DollarAmount = user.DollarAmount,
                 TotalNairaAmount = amount,
-                Balance = paidDollarQuantity > user.DollarAmount ? 0 : remainingAmount * user.DollarRate,
+                Balance = paidDollarQuantity > user.DollarAmount ? 0 : (remainingAmount * user.DollarRate) + userRecord.BalanceNaira,
                 PhoneNumber = userRecord.Phone ?? "",
                 PaymentCurrency = PaymentCurrency.Naira,
                 Channel = Channel.Mobile,
                 AccountNumber = user.CustomerAccount,
-                Deposit = user.DollarAmount > paidDollarQuantity ? 0 : remainingAmount * user.DollarRate,
+                Deposit = user.DollarAmount > paidDollarQuantity ? 0 : (remainingAmount * user.DollarRate) + userRecord.BalanceNaira,
                 PaymentEvidence = user.TransferEvidence.Select(e => new CustomerPaymentReceipt
                 {
                     Reciept = e.Receipts
@@ -399,7 +399,7 @@ namespace IceCareNigLtd.Core.Services
             //await _userRepository.DeleteCustomerTransferRecordAsync(user.Id);
 
             if (paidDollarQuantity > user.DollarAmount)
-                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
+                await _userRepository.AddUserNairaBalance(user.Email, (remainingAmount * user.DollarRate) + userRecord.BalanceNaira);
             else if (user.DollarAmount > paidDollarQuantity)
                 await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
             //else
@@ -524,20 +524,29 @@ namespace IceCareNigLtd.Core.Services
             await _supplierRepository.SubtractDollarAmountAsync(customer.DollarAmount);
             await _customerRepository.AddCustomerAsync(customer);
 
-            foreach (var bankInfo in customer.Banks)
-            {
-                var bank = new Bank
-                {
-                    BankName = bankInfo.BankName.ToString(),
-                    Date = DateTime.UtcNow,
-                    EntityName = user.CustomerName,
-                    PersonType = PersonType.Customer,
-                    ExpenseType = CreditType.Credit,
-                    Amount = bankInfo.AmountTransferred,
-                };
 
-                await _bankRepository.AddBankAsync(bank);
-            }
+            var paidDollarQuantity = user.Amount / user.DollarRate;
+            var remainingAmount = paidDollarQuantity - user.DollarAmount;
+
+            if (paidDollarQuantity > user.DollarAmount)
+                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
+            else if (user.DollarAmount > paidDollarQuantity)
+                await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
+
+            //foreach (var bankInfo in customer.Banks)
+            //{
+            //    var bank = new Bank
+            //    {
+            //        BankName = bankInfo.BankName.ToString(),
+            //        Date = DateTime.UtcNow,
+            //        EntityName = user.CustomerName,
+            //        PersonType = PersonType.Customer,
+            //        ExpenseType = CreditType.Credit,
+            //        Amount = bankInfo.AmountTransferred,
+            //    };
+
+            //    await _bankRepository.AddBankAsync(bank);
+            //}
 
             return new Response<string>
             {
@@ -680,6 +689,21 @@ namespace IceCareNigLtd.Core.Services
                 await _userRepository.SubtractUserNairaBalance(user.Email, userDetails.BalanceNaira);
 
             await _userRepository.AddUserNairaBalance(user.Email, user.TransferDetails.Sum(a => a.TransferredAmount));
+
+            foreach (var bankInfo in user.TransferDetails)
+            {
+                var bank = new Bank
+                {
+                    BankName = bankInfo.BankName.ToString(),
+                    Date = DateTime.UtcNow,
+                    EntityName = user.Name,
+                    PersonType = PersonType.Customer,
+                    ExpenseType = CreditType.Credit,
+                    Amount = bankInfo.TransferredAmount,
+                };
+
+                await _bankRepository.AddBankAsync(bank);
+            }
 
             return new Response<string>
             {

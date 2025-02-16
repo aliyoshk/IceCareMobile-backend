@@ -4,9 +4,12 @@ using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
+using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Infrastructure.Interfaces.Users;
 using IceCareNigLtd.Infrastructure.Repositories;
+using IceCareNigLtd.Infrastructure.Repositories.Users;
 using Microsoft.EntityFrameworkCore;
 using static IceCareNigLtd.Core.Enums.Enums;
 
@@ -19,15 +22,17 @@ namespace IceCareNigLtd.Core.Services
         private readonly ISupplierRepository _supplierRepository;
         private readonly ISettingsRepository _settingsRepository;
         private readonly IPaymentRepository _paymentsRepository;
+        private readonly IUserRepository _usersRepository;
 
         public CustomerService(ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository,
-            ISettingsRepository settingsRepository, IPaymentRepository paymentsRepository)
+            ISettingsRepository settingsRepository, IPaymentRepository paymentsRepository, IUserRepository usersRepository)
         {
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
             _supplierRepository = supplierRepository;
             _settingsRepository = settingsRepository;
             _paymentsRepository = paymentsRepository;
+            _usersRepository = usersRepository;
         }
 
         public async Task<Response<bool>> AddCustomerAsync(CustomerDto customerDto)
@@ -113,7 +118,6 @@ namespace IceCareNigLtd.Core.Services
 
             //await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
             await _customerRepository.AddCustomerAsync(customer);
-
             
             foreach (var bankInfo in customerDto.Banks)
             {
@@ -130,6 +134,44 @@ namespace IceCareNigLtd.Core.Services
                 await _bankRepository.AddBankAsync(bank);
             }
 
+
+            var isUserRegistered = await _usersRepository.IsPhoneNumberExistsAsync(customerDto.PhoneNumber);
+            var userDetails = await _usersRepository.GetRegisteredUserByPhone(customerDto.PhoneNumber);
+            //if (userDetails.FullName.ToLower().Split() == customerDto.Name.ToLower().Split())
+            if (isUserRegistered && customerDto.PaymentCurrency == PaymentCurrency.Naira.ToString())
+            {
+                Category transactionCategory = Category.SingleBankPayment;
+                if (customerDto.Banks.Count > 1)
+                    transactionCategory = Category.MultipleBanksPayment;
+                var data = new Transfer
+                {
+                    TransactionDate = DateTime.UtcNow,
+                    DollarAmount = customerDto.DollarAmount,
+                    Description = "payment made via admin counter",
+                    Channel = Channel.Web,
+                    CustomerAccount = userDetails.AccountNumber,
+                    Currency = PaymentCurrency.Naira,
+                    CustomerName = userDetails.FullName,
+                    Email = userDetails.Email,
+                    DollarRate = customerDto.DollarRate,
+                    TransferReference = "",
+                    Status = "Confirmed",
+                    Approver = "",
+                    Category = transactionCategory,
+                    PhoneNumber = customerDto.PhoneNumber,
+                    BankDetails = null,
+                    TransferEvidence = null
+                };
+                await _usersRepository.FundTransferAsync(data);
+
+                var paidDollarQuantity = totalNairaAmount / customerDto.DollarRate;
+                var remainingAmount = paidDollarQuantity - customerDto.DollarAmount;
+
+                if (paidDollarQuantity > customerDto.DollarAmount)
+                    await _usersRepository.AddUserNairaBalance(userDetails.Email, remainingAmount * customerDto.DollarRate);
+                else if (customerDto.DollarAmount > paidDollarQuantity)
+                    await _usersRepository.SubtractUserNairaBalance(userDetails.Email, (customerDto.DollarAmount - paidDollarQuantity) * customerDto.DollarRate);
+            }
             return new Response<bool>
             {
                 Success = true,
