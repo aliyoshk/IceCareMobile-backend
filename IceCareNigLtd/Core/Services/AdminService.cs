@@ -399,7 +399,7 @@ namespace IceCareNigLtd.Core.Services
             //await _userRepository.DeleteCustomerTransferRecordAsync(user.Id);
 
             if (paidDollarQuantity > user.DollarAmount)
-                await _userRepository.AddUserNairaBalance(user.Email, (remainingAmount * user.DollarRate) + userRecord.BalanceNaira);
+                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
             else if (user.DollarAmount > paidDollarQuantity)
                 await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
             //else

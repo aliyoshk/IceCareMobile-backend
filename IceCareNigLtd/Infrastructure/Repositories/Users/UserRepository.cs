@@ -100,12 +100,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories.Users
                 if (amount <= 0)
                     return;
 
-                if (user.BalanceNaira >= amount)
-                {
-                    user.BalanceNaira -= amount;
-                }
-                else
-                    return;
+                user.BalanceNaira -= amount;
 
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
