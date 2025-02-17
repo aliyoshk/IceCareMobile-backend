@@ -143,6 +143,8 @@ namespace IceCareNigLtd.Core.Services
                 Category transactionCategory = Category.SingleBankPayment;
                 if (customerDto.Banks.Count > 1)
                     transactionCategory = Category.MultipleBanksPayment;
+                else if (customer.DollarAmount == 0)
+                    transactionCategory = Category.AccountTopUp;
                 var data = new Transfer
                 {
                     TransactionDate = DateTime.UtcNow,
