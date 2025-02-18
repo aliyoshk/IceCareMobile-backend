@@ -41,7 +41,11 @@ namespace IceCareNigLtd.Api.Controllers
             var response = await _dashboardService.GetDashboardDataAsync(adminUsername);
             if (!response.Success)
             {
-                return BadRequest(response.Message);
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message
+                });
             }
             return Ok(response);
         }
@@ -92,10 +96,14 @@ namespace IceCareNigLtd.Api.Controllers
 
             if (!response.Success)
             {
-                return BadRequest(response.Message);
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message
+                });
             }
 
-            return Ok(response.Message);
+            return Ok(response);
         }
 
         [HttpPost]

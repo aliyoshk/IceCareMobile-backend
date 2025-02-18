@@ -45,10 +45,10 @@ namespace IceCareNigLtd.Api.Controllers
             {
                 { nameof(customerDto.Name), customerDto.Name },
                 { nameof(customerDto.ModeOfPayment), customerDto.ModeOfPayment},
-                { nameof(customerDto.DollarAmount), customerDto.DollarAmount.ToString() },
                 { nameof(customerDto.DollarRate), customerDto.DollarRate.ToString() },
                 { nameof(customerDto.PaymentCurrency), customerDto.PaymentCurrency },
                 { nameof(customerDto.Balance), customerDto.Balance.ToString() },
+                { nameof(customerDto.PhoneNumber), customerDto.PhoneNumber.ToString() },
             };
             foreach (var field in requiredFields)
             {
@@ -143,7 +143,6 @@ namespace IceCareNigLtd.Api.Controllers
             {
                 { nameof(completePaymentRequest.CustomerId), completePaymentRequest.CustomerId.ToString() },
                 { nameof(completePaymentRequest.DollarAmount), completePaymentRequest.DollarAmount.ToString()},
-                { nameof(completePaymentRequest.PhoneNumber), completePaymentRequest.PhoneNumber },
                 { nameof(completePaymentRequest.Charges), completePaymentRequest.Charges.ToString() },
             };
             foreach (var field in requiredFields)

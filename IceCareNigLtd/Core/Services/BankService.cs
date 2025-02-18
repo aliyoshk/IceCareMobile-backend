@@ -34,7 +34,7 @@ namespace IceCareNigLtd.Core.Services
             //        return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
             //}
 
-            var existingBank = accounts.FirstOrDefault(b => b.BankName == bankDto.BankName.Replace(" ", ""));
+            var existingBank = accounts.FirstOrDefault(b => b.BankName == bankDto.BankName);
 
             if (existingBank == null)
                 return new Response<BankDto> { Success = false, Message = $"{bankDto.BankName} doesn't exist in the system" };
@@ -50,7 +50,7 @@ namespace IceCareNigLtd.Core.Services
             {
                 EntityName = bankDto.EntityName,
                 BankName = bankDto.BankName.ToString(),
-                Date = DateTime.Now,
+                Date = DateTime.UtcNow,
                 PersonType = Enum.Parse<PersonType>(bankDto.PersonType),
                 ExpenseType = Enum.Parse<CreditType>(bankDto.ExpenseType),
                 Amount = bankDto.Amount,
@@ -88,7 +88,7 @@ namespace IceCareNigLtd.Core.Services
                 Id = b.Id,
                 EntityName = b.EntityName,
                 BankName = b.BankName.ToString(),
-                Date = DateTime.Now,
+                Date = DateTime.UtcNow,
                 PersonType = b.PersonType.ToString(),
                 ExpenseType = b.ExpenseType.ToString(),
                 Amount = b.Amount

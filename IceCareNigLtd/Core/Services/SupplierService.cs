@@ -50,12 +50,10 @@ namespace IceCareNigLtd.Core.Services
                 supplierDto.Amount = 0;
                 foreach (var bank in supplierDto.Banks)
                 {
-                    var existingBank = accounts.FirstOrDefault(b => b.BankName == bank.BankName.Replace(" ", ""));
-
                     if (bank.BankName == "")
                         errorMessages.Add($"Select bank, field cannot be empty");
 
-                    if (existingBank == null)
+                    if (bank.BankName == null)
                         errorMessages.Add($"{bank.BankName} doesn't exist in the system");
 
                     if (bank.AmountTransferred <= 0)

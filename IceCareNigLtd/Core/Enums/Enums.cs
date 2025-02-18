@@ -47,6 +47,7 @@ namespace IceCareNigLtd.Core.Enums
             MultipleBanksPayment,
             AccountBalancePayment,
             ThirdPartyPayment,
+            AccountTopUp
         }
     }
 }

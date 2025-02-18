@@ -33,7 +33,7 @@ namespace IceCareNigLtd.Infrastructure.Repositories
 
         public async Task<List<Payment>> GetPaymentsAsync()
         {
-            return await _context.Payments.ToListAsync();
+            return await _context.Payments.OrderByDescending(c => c.Date).ToListAsync();
         }
     }
 }

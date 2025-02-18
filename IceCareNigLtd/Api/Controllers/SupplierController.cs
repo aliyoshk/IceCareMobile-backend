@@ -30,9 +30,13 @@ namespace IceCareNigLtd.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddSupplier([FromBody] SupplierRequest supplierDto)
         {
-            if (supplierDto == null || string.IsNullOrEmpty(supplierDto.Name) || supplierDto.Banks == null || !supplierDto.Banks.Any())
+            if (supplierDto == null || string.IsNullOrEmpty(supplierDto.Name))
             {
-                return BadRequest("Invalid supplier data.");
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = $"Invalid supplier data"
+                });
             }
 
             var requiredFields = new Dictionary<string, string>
@@ -68,7 +72,7 @@ namespace IceCareNigLtd.Api.Controllers
                 });
             }
 
-            return CreatedAtAction(nameof(GetSuppliers), new { id = response.Data }, response);
+            return CreatedAtAction(nameof(GetSuppliers), new { id = response.Message }, response);
         }
 
 

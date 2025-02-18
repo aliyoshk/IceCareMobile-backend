@@ -11,7 +11,6 @@ namespace IceCareNigLtd.Core.Entities.Users
         public DateTime TransactionDate { get; set; }
         public string CustomerName { get; set; }
         public string CustomerAccount { get; set; }
-        public decimal Balance { get; set; }
         public Channel Channel { get; set; }
         public string Email { get; set; }
         public decimal DollarRate { get; set; }
@@ -20,6 +19,7 @@ namespace IceCareNigLtd.Core.Entities.Users
         public string Approver { get; set; }
         public Category Category { get; set; }
         public string PhoneNumber { get; set; }
+        public PaymentCurrency Currency { get; set; }
 
         public List<TransferBank> BankDetails { get; set; }
         public List<EvidenceOfTransfer> TransferEvidence { get; set; }
@@ -30,6 +30,8 @@ namespace IceCareNigLtd.Core.Entities.Users
         public int Id { get; set; }
         public string BankName { get; set; }
         public decimal TransferredAmount { get; set; }
+        public string AccountName { get; set; }
+        public string AccountNumber { get; set; }
 
         public int TransferId { get; set; }
         public Transfer Transfer { get; set; }

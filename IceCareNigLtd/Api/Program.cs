@@ -66,8 +66,11 @@ builder.Services.AddSwaggerGen(c =>
 //builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //    options.UseInMemoryDatabase("InMemoryDb"));
 
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // JWT Authentication Configuration
 var jwtKey = builder.Configuration["Jwt:Key"];

@@ -1,12 +1,14 @@
-﻿using IceCareNigLtd.Api.Models;
+﻿using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography.Xml;
+using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
+using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces.Users;
-using IceCareNigLtd.Infrastructure.Repositories;
 using static IceCareNigLtd.Core.Enums.Enums;
 
 namespace IceCareNigLtd.Core.Services
@@ -18,14 +20,14 @@ namespace IceCareNigLtd.Core.Services
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
-
+        private readonly ISettingsRepository _settingsRepository;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IBankRepository _bankRepository;
 
         public AdminService(IAdminRepository adminRepository, ITokenService tokenService, IConfiguration configuration,
             IUserRepository userRepository, IPasswordHasher passwordHasher, ISupplierRepository supplierRepository,
-            ICustomerRepository customerRepository, IBankRepository bankRepository)
+            ICustomerRepository customerRepository, IBankRepository bankRepository, ISettingsRepository settingsRepository)
         {
             _adminRepository = adminRepository;
             _tokenService = tokenService;
@@ -35,34 +37,47 @@ namespace IceCareNigLtd.Core.Services
             _supplierRepository = supplierRepository;
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
+            _settingsRepository = settingsRepository;
         }
 
         public async Task<Response<AdminDto>> AddAdminAsync(AdminDto adminDto)
         {
-            // Check if an admin with the same email already exists
-            var existingAdmin = await _adminRepository.GetAdminByUsernameAsync(adminDto.Email);
-            if (existingAdmin != null)
+            try
             {
-                return new Response<AdminDto>
+                // Check if an admin with the same email already exists
+                var existingAdmin = await _adminRepository.GetAdminByUsernameAsync(adminDto.Email);
+                if (existingAdmin != null)
                 {
-                    Success = false,
-                    Message = "An admin with this email already exists",
-                    Data = null
+                    return new Response<AdminDto>
+                    {
+                        Success = false,
+                        Message = "An admin with this email already exists",
+                        Data = null
+                    };
+                }
+                var admin = new Admin
+                {
+                    Name = adminDto.Name,
+                    Email = adminDto.Email,
+                    //Password = _passwordHasher.HashPassword(adminDto.Password),
+                    Password = adminDto.Password,
+                    Role = "Normal",
+                    Date = DateTime.UtcNow
                 };
+
+                await _adminRepository.AddAdminAsync(admin);
+
+                return new Response<AdminDto> { Success = true, Message = "Admin added successfully", Data = adminDto };
             }
-            var admin = new Admin
+            catch (Exception ex)
             {
-                Name = adminDto.Name,
-                Email = adminDto.Email,
-                //Password = _passwordHasher.HashPassword(adminDto.Password),
-                Password = adminDto.Password,
-                Role = "Normal",
-                Date = DateTime.Now
-            };
-
-            await _adminRepository.AddAdminAsync(admin);
-
-            return new Response<AdminDto> { Success = true, Message = "Admin added successfully", Data = adminDto };
+                Console.WriteLine($"Error adding admin: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task<Response<List<AdminDto>>> GetAdminsAsync()
@@ -129,7 +144,7 @@ namespace IceCareNigLtd.Core.Services
         //MOBILE PART INTEGRATION
         public async Task<Response<List<UserDto>>> GetUsersByStatusAsync(string status)
         {
-            var users = await _userRepository.GetUsersByStatusAsync(status);
+            var users = await _userRepository.GetRegisteredUserByStatus(status);
             var userDtos = users.Select(user => new UserDto
             {
                 Id = user.Id,
@@ -138,8 +153,7 @@ namespace IceCareNigLtd.Core.Services
                 Status = user.Status,
                 Phone = user.Phone,
                 AccountNumber = user.AccountNumber,
-                Reason = user.Reason,
-                ReviewedBy = user.ReviewedBy
+                ReviewedBy = user.Reviewer
             }).ToList();
 
             return new Response<List<UserDto>> { Success = true, Data = userDtos };
@@ -147,7 +161,7 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<string>> ChangeUserStatusAsync(ChangeUserStatusRequest request, string adminName = "")
         {
-            var user = await _userRepository.GetUserByIdAsync(request.UserId);
+            var user = await _userRepository.GetRegisteredUserById(request.UserId);
             if (user == null)
             {
                 return new Response<string> { Success = false, Message = "User not found." };
@@ -159,14 +173,13 @@ namespace IceCareNigLtd.Core.Services
                     var accountNumber = await GenerateUniqueAccountNumberAsync();
                     user.Status = "Approved";
                     user.AccountNumber = accountNumber;
-                    user.ReviewedBy = adminName;
-                    user.Reason = "";
+                    user.Reviewer = adminName;
                     await _userRepository.MoveToApprovedAsync(user);
                     break;
 
                 case ReviewAction.Reject:
                     user.Status = "Rejected";
-                    user.ReviewedBy = adminName;
+                    user.Reviewer = adminName;
                     await _userRepository.MoveToRejectedAsync(user);
                     break;
 
@@ -177,10 +190,19 @@ namespace IceCareNigLtd.Core.Services
             return new Response<string> { Success = true, Message = "Success", Data = $"User {request.Action} successfully." };
         }
 
+        public async Task<Response<object>> DeleteUserAsync(int userId)
+        {
+            var user = await _userRepository.GetRegisteredUserById(userId);
+            if (user.BalanceNaira > 0 && user.BalanceDollar > 0)
+                return new Response<object> { Success = false, Message = "User has an existing balance in the system" };
+
+            await _userRepository.DeleteUserAsync(userId);
+            return new Response<object> { Success = true, Message = "User deleted successfully" };
+        }
 
         public async Task<Response<List<UserDto>>> GetApprovedUsersAsync()
         {
-            var approvedUsers = await _userRepository.GetUsersByStatusAsync("Approved");
+            var approvedUsers = await _userRepository.GetRegisteredUserByStatus("Approved");
             var approvedUserDtos = approvedUsers.Select(user => new UserDto
             {
                 Id = user.Id,
@@ -189,8 +211,7 @@ namespace IceCareNigLtd.Core.Services
                 Status = user.Status,
                 AccountNumber = user.AccountNumber,
                 Phone = user.Phone,
-                Reason = user.Reason,
-                ReviewedBy = user.ReviewedBy
+                ReviewedBy = user.Reviewer
             }).ToList();
 
             return new Response<List<UserDto>> { Success = true, Data = approvedUserDtos };
@@ -198,23 +219,20 @@ namespace IceCareNigLtd.Core.Services
 
         public async Task<Response<List<UserDto>>> GetRejectedUsersAsync()
         {
-            var rejectedUsers = await _userRepository.GetUsersByStatusAsync("Rejected");
+            var rejectedUsers = await _userRepository.GetRegisteredUserByStatus("Rejected");
             var rejectedUserDtos = rejectedUsers.Select(user => new UserDto
             {
                 Id = user.Id,
                 FullName = user.FullName,
                 Email = user.Email,
                 Status = user.Status,
-                Reason = user.Reason,
-                ReviewedBy = user.ReviewedBy,
+                ReviewedBy = user.Reviewer,
                 AccountNumber = user.AccountNumber,
                 Phone = user.Phone
             }).ToList();
 
             return new Response<List<UserDto>> { Success = true, Data = rejectedUserDtos };
         }
-
-
 
         private async Task<string> GenerateUniqueAccountNumberAsync()
         {
@@ -235,7 +253,6 @@ namespace IceCareNigLtd.Core.Services
             {
                 Id = users.Id,
                 CustomerName = users.CustomerName,
-                Balance = users.Balance,
                 TransferReference = users.TransferReference,
                 Status = users.Status,
                 ApproverName = users.Approver,
@@ -245,10 +262,13 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = users.DollarAmount,
                 TransactionDate = users.TransactionDate,
                 CustomerEmail = users.Email,
-                BankDetails = users.BankDetails.Select(b => new BankInfoDto
+                PhoneNumber = users.PhoneNumber,
+                BankDetails = users.BankDetails.Select(b => new TransferDetails
                 {
                     BankName = b.BankName.ToString(),
-                    AmountTransferred = b.TransferredAmount
+                    AmountTransferred = b.TransferredAmount,
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber
                 }).ToList(),
                 TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
                 {
@@ -279,12 +299,14 @@ namespace IceCareNigLtd.Core.Services
                 DollarAmount = users.DollarAmount,
                 TransactionDate = users.TransactionDate,
                 CustomerEmail = users.Email,
-                Balance = users.Balance,
+                PhoneNumber = users.PhoneNumber,
                 TransferReference = users.TransferReference,
-                BankDetails = users.BankDetails.Select(b => new BankInfoDto
+                BankDetails = users.BankDetails.Select(b => new TransferDetails
                 {
                     BankName = b.BankName.ToString(),
-                    AmountTransferred = b.TransferredAmount
+                    AmountTransferred = b.TransferredAmount,
+                    AccountName = b.BankName,
+                    AccountNumber = b.AccountNumber
                 }).ToList(),
                 TransferEvidence = users.TransferEvidence.Select(e => new TransferEvidence
                 {
@@ -303,13 +325,17 @@ namespace IceCareNigLtd.Core.Services
         public async Task<Response<string>> ConfirmTransferAsync(ConfirmationRequest request, string adminName = null)
         {
             var user = await _userRepository.GetTransferByIdAsync(request.Id);
+            var availableDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
+
             if (user == null)
                 return new Response<string> { Success = false, Message = "User not found.", Data = "User not found." };
+            if (user.DollarAmount > availableDollarAmount)
+                return new Response<string> { Success = false, Message = "Insufficient dollar to complete request" };
             if (user.Email != request.Email)
                 return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
             if (user.Id != request.Id)
                 return new Response<string> { Success = false, Message = "Id not found", Data = "Email not found." };
-            var userRecord = await _userRepository.GetUserByEmailAsync(user.Email);
+            var userRecord = await _userRepository.GetRegisteredUserByEmail(user.Email);
 
             if (request.Confirmed)
             {
@@ -322,19 +348,25 @@ namespace IceCareNigLtd.Core.Services
 
 
             decimal amount = user.BankDetails.Sum(a => a.TransferredAmount);
+            var paidDollarQuantity = amount / user.DollarRate;
+            var remainingAmount = paidDollarQuantity - user.DollarAmount;
+
+            var userDetails = await _userRepository.GetRegisteredUserByEmail(user.Email);
+
             var customer = new Customer
             {
                 Name = user.CustomerName,
-                Date = user.TransactionDate,
+                Date = DateTime.UtcNow,
                 ModeOfPayment = ModeOfPayment.Transfer,
                 DollarRate = user.DollarRate,
                 DollarAmount = user.DollarAmount,
                 TotalNairaAmount = amount,
-                Balance = user.Balance,
+                Balance = paidDollarQuantity > user.DollarAmount ? 0 : (remainingAmount * user.DollarRate) + userRecord.BalanceNaira,
                 PhoneNumber = userRecord.Phone ?? "",
                 PaymentCurrency = PaymentCurrency.Naira,
                 Channel = Channel.Mobile,
                 AccountNumber = user.CustomerAccount,
+                Deposit = user.DollarAmount > paidDollarQuantity ? 0 : (remainingAmount * user.DollarRate) + userRecord.BalanceNaira,
                 PaymentEvidence = user.TransferEvidence.Select(e => new CustomerPaymentReceipt
                 {
                     Reciept = e.Receipts
@@ -355,6 +387,7 @@ namespace IceCareNigLtd.Core.Services
                 {
                     BankName = bankInfo.BankName.ToString(),
                     Date = DateTime.UtcNow,
+                    EntityName = user.CustomerName,
                     PersonType = PersonType.Customer,
                     ExpenseType = CreditType.Credit,
                     Amount = bankInfo.AmountTransferred,
@@ -364,6 +397,18 @@ namespace IceCareNigLtd.Core.Services
             }
             // we aren't deleting record at the moment
             //await _userRepository.DeleteCustomerTransferRecordAsync(user.Id);
+
+            if (paidDollarQuantity > user.DollarAmount)
+                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
+            else if (user.DollarAmount > paidDollarQuantity)
+                await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
+            //else
+            //{
+            //    if (userDetails.BalanceNaira > 0)
+            //    {
+            //        await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
+            //    }
+            //}
 
             return new Response<string>
             {
@@ -381,7 +426,6 @@ namespace IceCareNigLtd.Core.Services
             {
                 Id = user.Id,
                 CustomerName = user.CustomerName,
-                Balance = user.Balance,
                 TransferReference = user.TransferReference,
                 ApproverName = user.Approver,
                 DollarAmount = user.DollarAmount,
@@ -396,31 +440,152 @@ namespace IceCareNigLtd.Core.Services
                 {
                     Receipts = e.Receipts
                 }).ToList() ?? new List<TransferEvidence>(),
-                BankDetails = user.BankDetails?.Select(b => new BankInfoDto
+                BankDetails = user.BankDetails?.Select(b => new TransferDetails
                 {
                     BankName = b.BankName.ToString(),
-                    AmountTransferred = b.TransferredAmount
-                }).ToList() ?? new List<BankInfoDto>(),
+                    AmountTransferred = b.TransferredAmount,
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber
+                }).ToList() ?? new List<TransferDetails>(),
             }).ToList();
 
             return new Response<List<TransferResponse>> { Success = true, Data = details };
         }
 
-        public async Task<Response<List<ThirdPartyPaymentResponse>>> GetThirdPartyTransfer()
+        public async Task<Response<object>> DeleteTransferRecordAsync(int id)
         {
-            var transfer = await _userRepository.GetThirdPartyTransfers();
+            await _userRepository.DeleteTransferRecordAsync(id);
+            return new Response<object> { Success = true, Message = "Transfer record has been deleted" };
+        }
+
+        public async Task<Response<List<TransferResponse>>> GetAccountPaymentAsync(string status)
+        {
+            var user = await _userRepository.GetAccountPayments(status);
+            var data = user.Select(users => new TransferResponse
+            {
+                Id = users.Id,
+                CustomerName = users.CustomerName,
+                Status = users.Status,
+                ApproverName = users.Reviewer,
+                TotalAmount = users.Amount,
+                Category = users.Category.ToString(),
+                Description = users.Description,
+                DollarRate = users.DollarRate,
+                DollarAmount = users.DollarAmount,
+                TransactionDate = users.Date,
+                CustomerEmail = users.Email,
+                PhoneNumber = users.Phone,
+                TransferReference = users.ReferenceNo,
+                BankDetails = null,
+                TransferEvidence = null
+            }).ToList();
+
+            return new Response<List<TransferResponse>>
+            {
+                Success = true,
+                Message = "Success",
+                Data = data
+            };
+        }
+
+        public async Task<Response<string>> ConfirmAccountPaymentAsync(int id, string adminName = null)
+        {
+            var user = await _userRepository.GetAccountPaymentById(id);
+            var availableDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
+
+            if (user == null)
+                return new Response<string> { Success = false, Message = "Record not found.", Data = "Value not found." };
+            if (user.DollarAmount > availableDollarAmount)
+                return new Response<string> { Success = false, Message = "Insufficient dollar to complete request" };
+            
+            user.Status = "Confirmed";
+            user.Reviewer = adminName;
+
+            await _userRepository.ConfirmAccountPayment(user);
+
+            var customer = new Customer
+            {
+                Name = user.CustomerName,
+                Date = DateTime.UtcNow,
+                ModeOfPayment = ModeOfPayment.Transfer,
+                DollarRate = user.DollarRate,
+                DollarAmount = user.DollarAmount,
+                TotalNairaAmount = user.Amount,
+                Balance = 0,
+                PhoneNumber = user.Phone ?? "",
+                PaymentCurrency = PaymentCurrency.Naira,
+                Channel = Channel.Mobile,
+                AccountNumber = user.CustomerAccount,
+                Deposit = 0,
+                PaymentEvidence = null,
+                Banks = null
+            };
+
+            await _supplierRepository.SubtractDollarAmountAsync(customer.DollarAmount);
+            await _customerRepository.AddCustomerAsync(customer);
+
+
+            var paidDollarQuantity = user.Amount / user.DollarRate;
+            var remainingAmount = paidDollarQuantity - user.DollarAmount;
+
+            if (paidDollarQuantity > user.DollarAmount)
+                await _userRepository.AddUserNairaBalance(user.Email, remainingAmount * user.DollarRate);
+            else if (user.DollarAmount > paidDollarQuantity)
+                await _userRepository.SubtractUserNairaBalance(user.Email, (user.DollarAmount - paidDollarQuantity) * user.DollarRate);
+
+            //foreach (var bankInfo in customer.Banks)
+            //{
+            //    var bank = new Bank
+            //    {
+            //        BankName = bankInfo.BankName.ToString(),
+            //        Date = DateTime.UtcNow,
+            //        EntityName = user.CustomerName,
+            //        PersonType = PersonType.Customer,
+            //        ExpenseType = CreditType.Credit,
+            //        Amount = bankInfo.AmountTransferred,
+            //    };
+
+            //    await _bankRepository.AddBankAsync(bank);
+            //}
+
+            return new Response<string>
+            {
+                Success = true,
+                Message = "Success",
+                Data = "Account payment has been confirmed"
+            };
+        }
+
+        public async Task<Response<object>> DeleteAccountPaymentAsync(int id)
+        {
+            var user = await _userRepository.GetUserAccountTopUpAsync(id);
+            if (user.Status == "pending")
+                await _userRepository.AddUserNairaBalance(user.Email, user.TransferDetails.Sum(a => a.TransferredAmount));
+
+            await _userRepository.DeleteAccountPaymentRecordAsync(id);
+            return new Response<object> { Success = true, Message = "Account payment record has been deleted" };
+        }
+
+        public async Task<Response<List<ThirdPartyPaymentResponse>>> GetThirdPartyTransfer(string status)
+        {
+            var transfer = await _userRepository.GetThirdPartyTransfers(status);
             var transferDtos = transfer.Select(t => new ThirdPartyPaymentResponse
             {
+                Id = t.Id,
                 Description = t.Description,
                 AccountName = t.AccountName,
                 AccountNumber = t.AccountNumber,
-                Amount = t.Amount,
+                TotalAmount = t.Amount,
                 BankName = t.BankName,
+                CustomerEmail = t.Email,
+                TransactionDate = t.Date,
+                TransferReference = t.ReferenceNo,
                 Status = t.Status,
                 CustomerAccount = t.CustomerAccount,
-                Balance = t.Balance,
                 Channel = t.Channel.ToString(),
-                CustomerName = t.CustomerName
+                CustomerName = t.CustomerName,
+                Category = t.Category.ToString(),
+                PhoneNumber = t.PhoneNumber
             }).ToList();
 
             return new Response<List<ThirdPartyPaymentResponse>>
@@ -431,13 +596,17 @@ namespace IceCareNigLtd.Core.Services
             };
         }
 
-        public async Task<Response<string>> ThirdPartyTransferCompleted(int id)
+        public async Task<Response<string>> ThirdPartyTransferCompleted(int id, string adminName = null)
         {
             var transfer = await _userRepository.GetThirdPartyPaymentById(id);
             if (transfer == null)
                 return new Response<string> { Success = false, Message = "Value not found.", Data = "Value not found." };
 
-            transfer.Status = "Completed";
+            //await _userRepository.SubtractUserNairaBalance(transfer.Email, transfer.Amount);
+
+            transfer.Status = "Confirmed";
+            transfer.Approver = adminName;
+
             await _userRepository.ThirdPartyTransferCompleted(transfer);
 
             return new Response<string>
@@ -446,6 +615,112 @@ namespace IceCareNigLtd.Core.Services
                 Message = "Success",
                 Data = "User transfer has been confirmed"
             };
+        }
+
+        public async Task<Response<object>> DeleteThirdPartyTransferAsync(int id)
+        {
+            var user = await _userRepository.GetThirdPartyPaymentById(id);
+            if (user.Status.ToLower() == "pending")
+                await _userRepository.AddUserNairaBalance(user.Email, user.Amount);
+
+            await _userRepository.DeleteThirdPartyTransferRecordAsync(id);
+            return new Response<object> { Success = true, Message = "Third party transfer record deleted" };
+        }
+
+        public async Task<Response<List<TransferResponse>>> GetAccountTopUpsAsync(string status)
+        {
+            var dollarRate = await _settingsRepository.GetDollarRateAsync();
+            var response = await _userRepository.GetAccountTopUpsAsync(status);
+            var accountTopUps = response.Select(t => new TransferResponse
+            {
+                Id = t.Id,
+                TransactionDate = t.TransactionDate,
+                ApproverName = t.Approver,
+                DollarRate = dollarRate,
+                DollarAmount = t.TransferDetails.Sum(a => a.TransferredAmount) / dollarRate,
+                CustomerName = t.Name,
+                PhoneNumber = t.Phone,
+                Currency = t.Currency.ToString(),
+                TransferReference = t.Reference,
+                CustomerEmail = t.Email,
+                Description = t.Description,
+                Status = t.Status,
+                Category = t.Category.ToString(),
+                BankDetails = t.TransferDetails.Select(b => new TransferDetails
+                {
+                    AccountName = b.AccountName,
+                    AccountNumber = b.AccountNumber,
+                    AmountTransferred = b.TransferredAmount,
+                    BankName = b.BankName
+                }).ToList(),
+                TransferEvidence = t.TransferEvidence?.Select(e => new TransferEvidence
+                {
+                    Receipts = e.Receipts
+                }).ToList() ?? new List<TransferEvidence>(),
+            }).ToList();
+
+            return new Response<List<TransferResponse>>
+            {
+                Success = true,
+                Message = "Success",
+                Data = accountTopUps
+            };
+        }
+
+        public async Task<Response<string>> ConfirmAccountTopUp(ConfirmationRequest request, string adminName = null)
+        {
+            var user = await _userRepository.GetUserAccountTopUpAsync(request.Id);
+            if (user == null)
+                return new Response<string> { Success = false, Message = "User not found.", Data = "User not found." };
+            if (user.Status.ToLower() == "confirmed")
+                return new Response<string> { Success = false, Message = "Top up already been confirmed"};
+            if (user.Email != request.Email)
+                return new Response<string> { Success = false, Message = "Email not found.", Data = "Email not found." };
+            if (user.Id != request.Id)
+                return new Response<string> { Success = false, Message = "Id not found", Data = "Id not found." };
+
+            user.Status = "Confirmed";
+            user.Approver = adminName;
+            await _userRepository.ConfirmAccountTopUp(user);
+
+            var userDetails = await _userRepository.GetRegisteredUserByEmail(user.Email);
+
+            if (userDetails.BalanceNaira < 0)
+                await _userRepository.SubtractUserNairaBalance(user.Email, userDetails.BalanceNaira);
+
+            await _userRepository.AddUserNairaBalance(user.Email, user.TransferDetails.Sum(a => a.TransferredAmount));
+
+            foreach (var bankInfo in user.TransferDetails)
+            {
+                var bank = new Bank
+                {
+                    BankName = bankInfo.BankName.ToString(),
+                    Date = DateTime.UtcNow,
+                    EntityName = user.Name,
+                    PersonType = PersonType.Customer,
+                    ExpenseType = CreditType.Credit,
+                    Amount = bankInfo.TransferredAmount,
+                };
+
+                await _bankRepository.AddBankAsync(bank);
+            }
+
+            return new Response<string>
+            {
+                Success = true,
+                Message = "Success",
+                Data = $"User top up status has been confirmed by {adminName}."
+            };
+        }
+
+        public async Task<Response<object>> DeleteAccountTopUpAsync(int id)
+        {
+            var user = await _userRepository.GetUserAccountTopUpAsync(id);
+            if (user.Status.ToLower() == "pending")
+                await _userRepository.AddUserNairaBalance(user.Email, user.TransferDetails.Sum(a => a.TransferredAmount));
+
+            await _userRepository.DeleteAccountTopUpRecordAsync(id);
+            return new Response<object> { Success = true, Message = "Account top up record deleted" };
         }
     }
 }

@@ -4,23 +4,23 @@
 
 namespace IceCareNigLtd.Migrations
 {
-    public partial class AddNewColumnsAndTables : Migration
+    public partial class AddPhoneNumberThirdParty : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "Balance",
-                table: "Customers",
-                type: "TEXT",
+            migrationBuilder.AddColumn<string>(
+                name: "PhoneNumber",
+                table: "ThirdPartyPayments",
+                type: "text",
                 nullable: false,
-                defaultValue: 0m);
+                defaultValue: "");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Balance",
-                table: "Customers");
+                name: "PhoneNumber",
+                table: "ThirdPartyPayments");
         }
     }
 }

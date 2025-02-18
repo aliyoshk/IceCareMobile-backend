@@ -6,6 +6,8 @@ namespace IceCareNigLtd.Core.Entities.Users
 	public class ThirdPartyPayment
 	{
         public int Id { get; set; }
+        public DateTime Date { get; set; }
+        public string Email { get; set; }
         public decimal Amount { get; set; }
         public string BankName { get; set; }
         public string AccountName { get; set; }
@@ -13,9 +15,12 @@ namespace IceCareNigLtd.Core.Entities.Users
         public string Description { get; set; }
         public string CustomerName { get; set; }
         public string CustomerAccount { get; set; }
-        public decimal Balance { get; set; }
         public Channel Channel { get; set; }
         public string Status { get; set; }
+        public Category Category { get; set; }
+        public string ReferenceNo { get; set; }
+        public string Approver { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }
 

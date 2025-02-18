@@ -18,6 +18,8 @@ namespace IceCareNigLtd.Api.Models.Request
     {
         public string BankName { get; set; }
         public decimal TransferredAmount { get; set; }
+        public string AccountName { get; set; }
+        public string AccountNumber { get; set; }
     }
 
     public class TransferEvidence

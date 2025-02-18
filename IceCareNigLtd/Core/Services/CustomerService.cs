@@ -4,9 +4,12 @@ using IceCareNigLtd.Api.Models.Request;
 using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Entities;
+using IceCareNigLtd.Core.Entities.Users;
 using IceCareNigLtd.Core.Interfaces;
 using IceCareNigLtd.Infrastructure.Interfaces;
+using IceCareNigLtd.Infrastructure.Interfaces.Users;
 using IceCareNigLtd.Infrastructure.Repositories;
+using IceCareNigLtd.Infrastructure.Repositories.Users;
 using Microsoft.EntityFrameworkCore;
 using static IceCareNigLtd.Core.Enums.Enums;
 
@@ -19,30 +22,32 @@ namespace IceCareNigLtd.Core.Services
         private readonly ISupplierRepository _supplierRepository;
         private readonly ISettingsRepository _settingsRepository;
         private readonly IPaymentRepository _paymentsRepository;
+        private readonly IUserRepository _usersRepository;
 
         public CustomerService(ICustomerRepository customerRepository, IBankRepository bankRepository, ISupplierRepository supplierRepository,
-            ISettingsRepository settingsRepository, IPaymentRepository paymentsRepository)
+            ISettingsRepository settingsRepository, IPaymentRepository paymentsRepository, IUserRepository usersRepository)
         {
             _customerRepository = customerRepository;
             _bankRepository = bankRepository;
             _supplierRepository = supplierRepository;
             _settingsRepository = settingsRepository;
             _paymentsRepository = paymentsRepository;
+            _usersRepository = usersRepository;
         }
 
         public async Task<Response<bool>> AddCustomerAsync(CustomerDto customerDto)
         {
             var totalSupplierDollarAmount = await _supplierRepository.GetTotalDollarAmountAsync();
 
-            if (totalSupplierDollarAmount < customerDto.DollarAmount)
-            {
-                return new Response<bool>
-                {
-                    Success = false,
-                    Message = "Insufficient dollar to continue request",
-                    Data = false
-                };
-            }
+            //if (totalSupplierDollarAmount < customerDto.DollarAmount)
+            //{
+            //    return new Response<bool>
+            //    {
+            //        Success = false,
+            //        Message = "Insufficient dollar to continue request",
+            //        Data = false
+            //    };
+            //}
             if (customerDto.Amount <= 0 && customerDto.ModeOfPayment == ModeOfPayment.Cash.ToString())
             {
                 return new Response<bool>
@@ -69,12 +74,10 @@ namespace IceCareNigLtd.Core.Services
                 customerDto.Amount = 0;
                 foreach (var bank in customerDto.Banks)
                 {
-                    var existingBank = accounts.FirstOrDefault(b => b.BankName == bank.BankName.Replace(" ", ""));
-
                     if (bank.BankName == "")
                         errorMessages.Add($"Select Bank, field cannot be empty");
 
-                    if (existingBank == null)
+                    if (bank.BankName == null)
                         errorMessages.Add($"{bank.BankName} doesn't exist in the system");
 
                     if (bank.AmountTransferred <= 0)
@@ -115,7 +118,6 @@ namespace IceCareNigLtd.Core.Services
 
             //await _supplierRepository.SubtractDollarAmountAsync(customerDto.DollarAmount);
             await _customerRepository.AddCustomerAsync(customer);
-
             
             foreach (var bankInfo in customerDto.Banks)
             {
@@ -132,6 +134,46 @@ namespace IceCareNigLtd.Core.Services
                 await _bankRepository.AddBankAsync(bank);
             }
 
+
+            var isUserRegistered = await _usersRepository.IsPhoneNumberExistsAsync(customerDto.PhoneNumber);
+            var userDetails = await _usersRepository.GetRegisteredUserByPhone(customerDto.PhoneNumber);
+            //if (userDetails.FullName.ToLower().Split() == customerDto.Name.ToLower().Split())
+            if (isUserRegistered && customerDto.PaymentCurrency == PaymentCurrency.Naira.ToString())
+            {
+                Category transactionCategory = Category.SingleBankPayment;
+                if (customerDto.Banks.Count > 1)
+                    transactionCategory = Category.MultipleBanksPayment;
+                else if (customer.DollarAmount == 0)
+                    transactionCategory = Category.AccountTopUp;
+                var data = new Transfer
+                {
+                    TransactionDate = DateTime.UtcNow,
+                    DollarAmount = customerDto.DollarAmount,
+                    Description = "payment made via admin counter",
+                    Channel = Channel.Web,
+                    CustomerAccount = userDetails.AccountNumber,
+                    Currency = PaymentCurrency.Naira,
+                    CustomerName = userDetails.FullName,
+                    Email = userDetails.Email,
+                    DollarRate = customerDto.DollarRate,
+                    TransferReference = "",
+                    Status = "Confirmed",
+                    Approver = "",
+                    Category = transactionCategory,
+                    PhoneNumber = customerDto.PhoneNumber,
+                    BankDetails = null,
+                    TransferEvidence = null
+                };
+                await _usersRepository.FundTransferAsync(data);
+
+                var paidDollarQuantity = totalNairaAmount / customerDto.DollarRate;
+                var remainingAmount = paidDollarQuantity - customerDto.DollarAmount;
+
+                if (paidDollarQuantity > customerDto.DollarAmount)
+                    await _usersRepository.AddUserNairaBalance(userDetails.Email, remainingAmount * customerDto.DollarRate);
+                else if (customerDto.DollarAmount > paidDollarQuantity)
+                    await _usersRepository.SubtractUserNairaBalance(userDetails.Email, (customerDto.DollarAmount - paidDollarQuantity) * customerDto.DollarRate);
+            }
             return new Response<bool>
             {
                 Success = true,
@@ -205,8 +247,6 @@ namespace IceCareNigLtd.Core.Services
 
             if (customer.Id != completePaymentRequest.CustomerId)
                 return new Response<bool> { Success = false, Message = "Customer ID does not correspond with records.", Data = false };
-            else if (customer.PhoneNumber != completePaymentRequest.PhoneNumber)
-                return new Response<bool> { Success = false, Message = "The Phone number enterred does not correspond with saved one.", Data = false };
             
             else if (customer.DollarAmount != completePaymentRequest.DollarAmount)
                 return new Response<bool> { Success = false, Message = "Dollar amount does not match with saved record.", Data = false };

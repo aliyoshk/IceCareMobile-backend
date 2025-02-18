@@ -2,6 +2,7 @@
 using IceCareNigLtd.Api.Models;
 using IceCareNigLtd.Api.Models.Network;
 using IceCareNigLtd.Api.Models.Request;
+using IceCareNigLtd.Api.Models.Response;
 using IceCareNigLtd.Api.Models.Users;
 using IceCareNigLtd.Core.Interfaces.Users;
 using IceCareNigLtd.Core.Utils;
@@ -21,44 +22,11 @@ namespace IceCareNigLtd.Api.Controllers.Users
             _userService = userService;
 		}
 
-
-        [HttpPost]
-        [Route("Login")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
-        {
-            if (loginDto == null)
-            {
-                return BadRequest(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Login data cannot be null.",
-                    Errors = new List<string> { "Invalid input." }
-                });
-            }
-
-            var result = await _userService.LoginUserAsync(loginDto);
-
-            if (!result.Success)
-            {
-                return Unauthorized(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Login failed.",
-                    Errors = new List<string> { "Invalid credentials or user not approved." }
-                });
-            }
-
-            return Ok(result);
-        }
-
-
         [HttpPost]
         [Route("Register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<string>), 200)]
         public async Task<IActionResult> Register([FromBody] RegistrationDto registrationDto)
         {
             if (registrationDto == null)
@@ -126,7 +94,6 @@ namespace IceCareNigLtd.Api.Controllers.Users
                 }
 
                 return Ok(result);
-                //return CreatedAtAction(nameof(Register), new { id = result.Data }, result.Data);
             }
             catch (Exception ex)
             {
@@ -139,14 +106,47 @@ namespace IceCareNigLtd.Api.Controllers.Users
             }
         }
 
+        [HttpPost]
+        [Route("Login")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(Response<LoginResponse>), 200)]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Login data cannot be null.",
+                    Errors = new List<string> { "Invalid input." }
+                });
+            }
+
+            var result = await _userService.LoginUserAsync(loginDto);
+
+            if (!result.Success)
+            {
+                return Unauthorized(new ErrorResponse
+                {
+                    Success = false,
+                    Message = result.Message,
+                    Errors = new List<string> { result.Message }
+                });
+            }
+
+            return Ok(result);
+        }
 
         [HttpPost]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Authorize]
         [Route("ResetPassword")]
-        public async Task<IActionResult> UpdatePhoneNumbers([FromBody] ResetPasswordRequest resetPasswordRequest)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest resetPasswordRequest)
         {
             var requiredFields = new Dictionary<string, string>
             {
@@ -186,6 +186,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("FundTransfer")]
         public async Task<IActionResult> FundTransfer([FromBody] TransferRequest transferRequest)
         {
@@ -253,19 +254,11 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("AccountBalancePayment")]
         public async Task<IActionResult> AccountPayment([FromBody] AccountPaymentRequest accountPaymentRequest)
         {
-            if (string.IsNullOrEmpty(accountPaymentRequest.DollarAmount.ToString()))
-            {
-                return BadRequest(new ErrorResponse
-                {
-                    Success = false,
-                    Message = "Dollar amount cannot be empty.",
-                    Errors = new List<string> { "Invalid input." }
-                });
-            }
-            if (string.IsNullOrEmpty(accountPaymentRequest.NairaAmount.ToString()))
+            if (string.IsNullOrEmpty(accountPaymentRequest.Amount.ToString()))
             {
                 return BadRequest(new ErrorResponse
                 {
@@ -292,6 +285,7 @@ namespace IceCareNigLtd.Api.Controllers.Users
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
         [Route("ThirdPartyPayment")]
         public async Task<IActionResult> ThirdPartyPayment([FromBody] ThirdPartyPaymentRequest thirdPartyPaymentRequest)
         {
@@ -327,6 +321,129 @@ namespace IceCareNigLtd.Api.Controllers.Users
                 });
             }
             return Ok(response);
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
+        [Route("AccountTopUp")]
+        public async Task<IActionResult> AccountTopUp([FromBody] AccoutTopUpRequest request)
+        {
+            var requiredFields = new Dictionary<string, string>
+            {
+                { nameof(request.Email), request.Email },
+                { nameof(request.Phone), request.Phone }
+            };
+
+            foreach (var field in requiredFields)
+            {
+                if (string.IsNullOrEmpty(field.Value))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        Success = false,
+                        Message = $"{field.Key} cannot be empty.",
+                        Errors = new List<string> { "Invalid input." }
+                    });
+                }
+            }
+
+            if (request.BankDetails.Count > request.TransferEvidence.Count)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = $"You are expected to upload {request.BankDetails.Count} receipt(s) for all bank transfer",
+                    Data = false
+                });
+            }
+
+            var response = await _userService.TopUpAccountAsync(request);
+            if (!response.Success)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = response.Message,
+                    Data = false
+                });
+            }
+            return Ok(response);
+        }
+
+
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<UserAccount>), 200)]
+        [Route("RefreshAccount")]
+        public async Task<IActionResult> RefreshAccount(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed" });
+
+            var result = await _userService.RefreshAccount(email);
+            if (result.Data == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found",
+                });
+            };
+            return Ok(result.Data);
+        }
+
+
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
+        [Route("CheckTransferStatus")]
+        public async Task<IActionResult> CheckTransferStatus(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed"});
+
+            var result = await _userService.GetTransferStatus(email);
+            if (!result.Data)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No record found",
+                });
+            };
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Response<List<TransactionHistoryResponse>>), 200)]
+        [Route("GetTransactionHistory")]
+        public async Task<IActionResult> GetTransactionHistory(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new ErrorResponse { Success = false, Message = "No email passed", Data = "failed to proceed" });
+
+            var result = await _userService.GetTransactionHistory(email);
+            if (result.Data == null || !result.Data.Any())
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "No transaction history found.",
+                    Errors = new List<string> { "List is empty." }
+                });
+            };
+            return Ok(result);
         }
     }
 }
